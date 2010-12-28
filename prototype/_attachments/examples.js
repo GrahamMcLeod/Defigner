@@ -49,7 +49,7 @@ var myHouse = house.make([
 
 var owns = relationship.make([
   ['name', 'owns'],
-  ['inverseRelationship', 'owned By']
+  ['inverseRelationship', 'ownedBy']
 ]);
 
 var person = thing.make([
@@ -80,7 +80,7 @@ html += '</table>';
 
 $(function() {
   $('#log').html(html);
-  thingStore.flushToCouch();
+  //thingStore.flushToCouch();
   $('#log').append ('<br>Data written to couch');
   $('#thing').append(bigTable.myHTML() + '<br><br>');
   $('#thing').append(furniture.myHTML());

@@ -1,5 +1,6 @@
 var thingStore = {
   data: {},
+  db: "/prototype",
   lookup: function(uri) {
     var thing = this.data[uri];
     if(thing) {
@@ -13,14 +14,35 @@ var thingStore = {
   },
   save: function(thing) {
     this.data[thing.uri] = thing;
+    this.saveURIToCouch(thing.uri);
+  },
+  saveURIToCouch: function(uri, rev) {
+    var thing = this.data[uri].serialize();
+    var encodedURI = encodeURI(uri.replace(/\//g, '_'));
+    var doc = {_id: encodedURI, thing: thing};
+    if(rev) doc._rev = rev;
+    $.ajax({
+      type: 'POST',
+      url: this.db,
+      data: JSON.stringify(doc),
+      contentType: 'application/json',
+      success: function(data) {},
+      error: function(data) {
+        $.get(thingStore.db + '/' + encodedURI, function(data) {
+          var oldDoc = JSON.parse(data);
+          var rev = oldDoc._rev;
+          thingStore.saveURIToCouch(uri, rev);
+        });
+      }
+    });
+    //this.db.saveDoc({_id: encodedURI, thing: thing});
   },
   flushToCouch: function() {
     var docs = [];
     for(var uri in this.data) {
-      docs.push({_id: uri, predicates})
+      this.saveURIToCouch(uri);
     }
-    var db = $.couch.db("prototype");
-    db.saveDoc({prototype:this.data});  
+    this.db.saveDoc({prototype:this.data});  
   }
 };
 
@@ -45,6 +67,16 @@ var thing = {
     return this.toString();
   },
   properties: {},
+  serialize: function() {
+    var serializedThing = {};
+    for(var prop in this) {
+      if(this.hasOwnProperty(prop)) {
+        serializedThing[prop] = this[prop];
+      }
+    }
+    stringifyFunctions(serializedThing);
+    return serializedThing;
+  },
   propertyType: function(property, value) {
     if(value) {
       this.properties[property] = value;
@@ -176,7 +208,7 @@ var thing = {
         this.propertyType(name.name, name.uri);
         var propertyValue = name.make([
             ['name', name.name],
-            ['uri', this.uri + '/#' + name.name]
+            ['uri', this.uri + '/p_' + name.name]
         ]);
         if((typeof value == 'object') && (!value.isAThing)) {
           propertyValue.extend(value);
@@ -190,7 +222,7 @@ var thing = {
         if(propertyType) {
           var propertyValue = propertyType.make([
             ['name', name],
-            ['uri', this.uri + '/#' + name]
+            ['uri', this.uri + '/p_' + name]
           ]);
           if((typeof value == 'object') && (!value.isAThing)) {
             propertyValue.extend(value);
