@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!-- Uses the ICanHaz templating based on Mustache -->
+<html>
+  <head>
+    <title>Graham Form Test using ICanHaz</title>
+    <script src="jquery.min.js"></script>
+    <script src="ICanHaz.min.js" ></script>
+    <script src="prototype.js"></script>
+    <script src="examples.js"></script>
+    <script src="/_utils/script/jquery.couch.js"></script>
+
+    <script id="inForm" type="text/html">
+      <form>
+        <table>
+        {{#properties}}
+          <tr>
+            <td>{{label}}: </td><td><input type="text" name="{{label}}"  value="{{value}}"/></td>
+          </tr>
+        {{/properties}} 
+        <tr>   
+        <td></td><td><input type="submit" value="Submit" /></td>
+        </tr>
+       </table> 
+      </form>
+    </script>
+    <script id="outForm" type="text/html">
+        <table>
+        {{#properties}}
+          <tr>
+            <td>{{label}}: </td><td>{{value}}</td>
+          </tr>
+        {{/properties}} 
+       </table> 
+    </script>
+
+
+    <script type="text/javascript">
+      // create dummy object for testing
+      var thing = {name: "defaultName",
+                   legs: 4,
+      };
+    
+      // when the dom's ready
+      $(document).ready(function () {fields = {fields: []};
+      								for (var prop in thing) 
+      									{fields.fields.push ({label: prop, value: thing[prop]})
+      								};
+       								
+                                     // Here's all the magic. Generate a capture form. 
+                                     var newHTML = ich.inForm (bigTable.view());
+                                     $('.form1').html(newHTML);
+                                     
+                                     // Generate a dispaly view
+                                     var newHTML = ich.outForm (bigTable.view());
+                                     $('.form1').append(newHTML);
+                                     }
+                       );
+    </script>
+
+    <style>
+      body {
+        font-family: Helvetica;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Prototype: Capture Thing</h1>
+    <div class='form1'>
+    </div>  
+  </body>
+</html>
