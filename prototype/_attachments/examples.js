@@ -70,10 +70,14 @@ $(function() {
     [houseHasFurniture, bigTable]
   ]);
   
+  var person = thingStore.lookup("uri:thing/person");
+  
+  /*
   var person = thing.make([
     ['name', 'person'],
     [label, 'Person']
   ]);
+  */
   
   var personOwnsFurniture = relationship.make([
     ['name', 'person_owns_furniture'],

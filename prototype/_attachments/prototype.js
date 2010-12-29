@@ -2,18 +2,18 @@ var thingStore = {
   localData: {},
   persistedData: {},
   db: "/prototype",
-  lookup: function(uri) {
+  lookup: function(uri, cb) {
     var thing = this.localData[uri];
     if(!thing) {
       thing = this.persistedData[uri];
       if(!thing) {
-        throw new Error('URI not found');
+        var thing = this.load(uri);
+        if(!thing) {
+          throw new Error('URI not found');
+        }
       }
     }
     return thing;
-  },
-  types: function(startURI, levels) {
-    
   },
   save: function(thing) {
     this.localData[thing.uri] = thing;
@@ -40,12 +40,24 @@ var thingStore = {
     });
     //this.db.saveDoc({_id: encodedURI, thing: thing});
   },
-  load: function(uri) {
-    $.get(that.db + '/' + encodedURI, function(data) {
-      var oldDoc = JSON.parse(data);
-      var rev = oldDoc._rev;
-      that.saveThingToCouch(thing, cb, rev);
-    });
+  load: function(uri, cb) {
+    var encodedURI = encodeURI(uri.replace(/\//g, '_'));
+    var doc = $.ajax({
+      type: 'GET',
+      async: false,
+      url: this.db + '/' + encodedURI,
+      success: function(data) {
+      }
+    }).responseText;
+    var doc = JSON.parse(doc);
+    var thingData = [];
+    for(var prop in doc.thing) {
+      thingData.push([prop, doc.thing[prop]]);
+    }
+    var prototype = this.lookup(doc.thing.prototype);
+    var thing = prototype.make(thingData);
+    this.persistedData[thing.uri] = thing;
+    return thing;
   },
   revert: function() {
     this.localData = {};
