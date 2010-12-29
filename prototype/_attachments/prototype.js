@@ -62,7 +62,7 @@ var thing = {
   prototype: 'thing',
   namespace: 'default_context',
   isAThing: true,
-  toString: function() {return this.name},
+  toString: function() {return this.uri},
   serialize: function() {
     var serializedThing = {functions: []};
     for(var prop in this) {
@@ -121,6 +121,11 @@ var thing = {
   propHTML: function () {return this.property ('name')
   },
   make: function(nameOrArray) {
+    newThing = this.parse(nameOrArray);
+    newThing.store();
+    return newThing;
+  },
+  parse: function(nameOrArray) {
     var F = function() {};
     F.prototype = this;
     var newThing = new F();
@@ -140,8 +145,7 @@ var thing = {
       newThing.extend(nameOrArray);      
     }
     if(newThing.postMake) newThing.postMake();
-    newThing.store();
-    return newThing;
+    return newThing;    
   },
   store: function() {
     thingStore.save(this);
@@ -193,7 +197,7 @@ var thing = {
               this[name] = value.uri;
               var inverse = name.property('inverse');
               if(inverse) {
-                value.property(inverse, this);
+                if(!value.hasOwnProperty(inverse.uri)) value.property(inverse, this);
               }
             } else {
               throw new Error('value must be of type ' + range.name);
