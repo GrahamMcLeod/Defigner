@@ -1,0 +1,92 @@
+<html>
+  <head>
+    <title>Force-Directed Layout</title>
+    
+    <script type="text/javascript" src="protovis-d3.2.js"></script>
+     <script src="jquery.min.js"></script>
+     <script src="myutils.js"></script>
+
+    <script type="text/javascript" src= "prototype.js"></script>
+    <script type="text/javascript" src= "examples.js"></script>
+    
+    <style type="text/css">
+
+body {
+  margin: 0;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript+protovis">
+  var fetchGraph = function (startURI, nodes, links)  {
+  	  var startNode = thingStore.lookup(startURI);
+  	  if (startNode) {
+  	    var tempNode = {nodeName: startNode.property(label), 
+  	                    group: 1};
+  	    nodes.push(tempNode);
+  	    var rels = startNode.properties().filter(function(each){return each.ofType(relationship)});
+        rels.forEach(function(each)
+             {tempNode = {nodeName: startNode.property(each).property(label), 
+  	                    group: 1};
+              var targetIdx = (nodes.push(tempNode) - 1);
+              var tempLink = {source:0, target:targetIdx, value:1, relName: each.property(label)};
+              links.push(tempLink);
+              }
+        )      
+      
+      }
+  };
+  var startItem = 'uri:thing/person/graham';
+  var tempNodes = [];
+  var tempLinks = [];
+  fetchGraph(startItem, tempNodes, tempLinks);
+  var items = {
+        nodes: tempNodes,
+        links: tempLinks   
+   };      
+
+   var w = document.body.clientWidth,
+       h = document.body.clientHeight,
+       colors = pv.Colors.category19();
+   
+   var vis = new pv.Panel()
+       .width(w)
+       .height(h)
+       .fillStyle("white")
+       .event("mousedown", pv.Behavior.pan())
+       .event("mousewheel", pv.Behavior.zoom());
+   
+   var force = vis.add(pv.Layout.Force)
+       .nodes(items.nodes)
+       .links(items.links)
+       .springLength(200);
+   
+   force.link.add(pv.Line)
+        .add(pv.Label)
+          .text(function (d, e) e.relName)
+          .data(function(p) [{
+                x: (p.sourceNode.x + p.targetNode.x) / 2,
+                y: (p.sourceNode.y + p.targetNode.y) / 2
+                }]
+                )
+          .textAlign("center")
+          .textBaseline("middle");
+          
+   
+   force.node.add(pv.Dot)
+       .size(function(d) 100 * Math.pow(this.scale, -1.5))
+       .fillStyle(function(d) d.fix ? "brown" : colors(d.group))
+       .strokeStyle(function() this.fillStyle().darker())
+       .lineWidth(1)
+       
+       .title(function(d) d.nodeName)
+       .event("mousedown", pv.Behavior.drag())
+       .event("drag", force)
+       .anchor("bottom").add(pv.Label)
+          .text( function (d) d.nodeName);
+   
+   vis.render();
+    </script>
+  </body>
+</html>
