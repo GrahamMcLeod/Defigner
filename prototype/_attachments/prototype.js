@@ -196,12 +196,19 @@ var thing = {
     return newObj;
   },
   property: function(name, value) {
+    var that = this;
     if(!value) {
       var value = this[name];
+      if(!value) return value;
       if((['range', 'domain', 'prototype', 'inverse'].indexOf(name) > -1) && value) value = thingStore.lookup(value);
       if(name.isAThing) {
+        var isCollection = name.property('collection');
         if(! name.property('range').ofType('uri:thing/literal')) {
-          value = thingStore.lookup(value);
+          if(isCollection) {
+            value = value.map(function(each) {return thingStore.lookup(each)});
+          } else {
+            value = thingStore.lookup(value);          
+          }
         }
       }
       return value;
@@ -210,22 +217,56 @@ var thing = {
       if(name.isAThing) {
         var domain = name.property('domain');
         var range = name.property('range');
+        var isCollection = name.property('collection');
+        var validRange = true;
         if(this.ofType(domain)) {
           if(range.ofType('uri:thing/literal')) {
-            if(range.validateProperty(value)) {
-              this[name] = value;
+            if(isCollection) {
+              value.forEach(function(each) {
+                if(!range.validateProperty(each)) validRange = false;
+              })
             } else {
-              throw new Error('value must be of type ' + range.name);
+              if(!range.validateProperty(value)) validRange = false;
+            }
+            if(validRange) {
+              this[name] = value;
             }
           } else {
-            if(value.ofType(range)) {
-              this[name] = value.uri;
-              var inverse = name.property('inverse');
-              if(inverse) {
-                if(!value.hasOwnProperty(inverse.uri)) value.property(inverse, this);
-              }
+            if(isCollection) {
+              value.forEach(function(each) {
+                if(!each.ofType(range)) validRange = false;
+              });
             } else {
-              throw new Error('value must be of type ' + range.name);
+              if(!value.ofType(range)) validRange = false;
+            }
+            if(validRange) {
+              var inverse = name.property('inverse');
+              if(isCollection) {            
+                var serializedValue = value.map(function(each) {return each.uri});
+              } else {
+                var serializedValue = value.uri;
+              }
+              this[name] = serializedValue;
+              
+              //check if there is inverse property defined and create if necessary
+              if(inverse) {
+                if(isCollection) {
+                  value.forEach(function(each) {
+                    var inversePropertyValue = each[inverse];
+                    if(!inversePropertyValue) inversePropertyValue = [];
+                    if(inversePropertyValue.indexOf(that.uri) == -1) {
+                      inversePropertyValue.push(that.uri);
+                      each[inverse] = inversePropertyValue;
+                      each.store();
+                    }
+                  })
+                } else {
+                  if(!(value[inverse] == this.uri)) {
+                    value[inverse] = this.uri;
+                    value.store();
+                  }
+                }               
+              }     
             }
           }
         } else {
@@ -285,6 +326,11 @@ var string = literal.make([
   ['validateProperty', function(value) {return (typeof value == 'string') | (value == undefined)}]
 ]);
 
+var boolean = literal.make([
+  ['name', 'boolean'],
+  ['validateProperty', function(value) {return (typeof value == 'boolean')}]
+]);
+
 var number = literal.make([
   ['name', 'number'],
   ['validateProperty', function(value) {return (typeof value == 'number') | (value == undefined)}]
@@ -300,6 +346,7 @@ var property = thing.make([
   ['name', 'property'],
   ['domain', thing],
   ['range', thing],
+  ['collection', false],
   ['postMake', function() {
     var inverse = this.property('inverse');
     if(inverse) {
@@ -326,6 +373,7 @@ var description = property.make([
 
 var relationship = property.make([
   ['name', 'relationship'],
+  ['collection', true],
   [label, 'a relationship']
 ]);
 

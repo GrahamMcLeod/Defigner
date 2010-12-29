@@ -78,14 +78,14 @@ $(function() {
     [houseHasFurniture, bigTable]
   ]);
   
-  var person = thingStore.lookup("uri:thing/person");
+ // var person = thingStore.lookup("uri:thing/person");
   
-  /*
+  
   var person = thing.make([
     ['name', 'person'],
     [label, 'Person']
   ]);
-  */
+  
   
   var personOwnsFurniture = relationship.make([
     ['name', 'person_owns_furniture'],
@@ -93,30 +93,21 @@ $(function() {
     ['domain', person],
     ['range', furniture]
   ]);
-  
-  var personOwnsTable = relationship.make([
-    ['name', 'person_owns_table'],
-    [label, 'owns'],
-    ['domain', person],
-    ['range', table]
-  ]);
 
-  
   var furnitureOwnedByPerson = relationship.make([
     ['name', 'furniture_owned_by_person'],
     [label, 'owned by'],
     ['inverse', personOwnsFurniture]
-  ]);
+  ]);  
   
+  person.property(personOwnsFurniture, []);
   
-  person.property(personOwnsFurniture, furniture);
-  
-  var graham = person.make([
+
+  /*var graham = person.make([
     ['name', 'graham'],
     [label, 'Graham'],
-    [personOwnsFurniture, bigTable],
-    [personOwnsTable, smallTable]
-  ]);
+    [personOwnsFurniture, [bigTable, smallTable]]
+  ]);*/
   thingStore.commit();
   $('#log').append ('<br>Data written to couch');
   //$('#thing').append(bigTable.myHTML() + '<br><br>');
