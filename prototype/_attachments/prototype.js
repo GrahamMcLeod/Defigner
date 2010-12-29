@@ -51,8 +51,12 @@ var thingStore = {
     }).responseText;
     var doc = JSON.parse(doc);
     var thingData = [];
+    var functions = doc.thing.functions;
+    delete doc.thing.functions;
     for(var prop in doc.thing) {
-      thingData.push([prop, doc.thing[prop]]);
+      var value = doc.thing[prop];
+      if(functions.indexOf(prop) > -1) eval('value = ' + value);
+      thingData.push([prop, value]);
     }
     var prototype = this.lookup(doc.thing.prototype);
     var thing = prototype.make(thingData);
@@ -371,9 +375,14 @@ var description = property.make([
   ['range', string]
 ]);
 
-var relationship = property.make([
-  ['name', 'relationship'],
+var collection = property.make([
+  ['name', 'collection'],
   ['collection', true],
+  [label, 'a property with multiple values']
+]);
+
+var relationship = collection.make([
+  ['name', 'relationship'],
   [label, 'a relationship']
 ]);
 

@@ -31,12 +31,14 @@ $(function() {
   //defining some things holding the properties:
   var furniture = thing.make([
     ['name', 'furniture'],
+    [label, 'Furniture'],
     [createdAt, 1900],
     [colour, '']
   ]);
   
   var table = furniture.make([
     ['name', 'table'],
+    [label, 'Table'],
     [colour, 'brown'],
     [legs, 4],
     [height, 100]
@@ -56,6 +58,18 @@ $(function() {
     [height, 100]
   ]);
 
+  var chair = furniture.make([
+    ['name', 'chair'],
+    [label, 'Chair'],
+    [colour, 'green'],
+    [legs, 4]
+  ]);
+  
+  var board = furniture.make([
+    ['name', 'board'],
+    [label, 'Board'],
+    [colour, 'brown']
+  ]);
   
   var house = thing.make([
     ['name', 'house'],
@@ -63,7 +77,7 @@ $(function() {
   ]);
   
   //defining a relationship between House and Furniture
-  var houseHasFurniture = property.make([
+  var houseHasFurniture = collection.make([
     ['name', 'house_has'],
     [label, 'has'],
     ['domain', house],
@@ -71,11 +85,18 @@ $(function() {
   ]);
   
   //adding that relationship to the House prototype
-  house.property(houseHasFurniture, furniture);
+  house.property(houseHasFurniture, [furniture]);
   
   var myHouse = house.make([
     ['name', 'myHouse'],
-    [houseHasFurniture, bigTable]
+    [label, 'My House'],
+    [houseHasFurniture, [table]]
+  ]);
+  
+  var grahamsHouse = house.make([
+    ['name', 'grahams_house'],
+    [label, 'Grahams House'],
+    [houseHasFurniture, [bigTable, chair, board]]
   ]);
   
  // var person = thingStore.lookup("uri:thing/person");
@@ -86,6 +107,31 @@ $(function() {
     [label, 'Person']
   ]);
   
+  var personOwns = relationship.make([
+    ['name', 'person_owns'],
+    [label, 'owns'],
+    ['domain', person],
+    ['range', thing]
+  ]);
+  
+  var ownedByPerson = relationship.make([
+    ['name', 'owned_by_person'],
+    [label, 'owned by'],
+    ['inverse', personOwns]
+  ]);
+  
+  var knows = relationship.make([
+    ['name', 'knows'],
+    [label, 'knows'],
+    ['domain', person],
+    ['range', person]
+  ]);
+  
+  var knownBy = relationship.make([
+    ['name', 'known_by'],
+    [label, 'known by'],
+    ['inverse', knows]
+  ]);
   
   var personOwnsFurniture = relationship.make([
     ['name', 'person_owns_furniture'],
@@ -101,13 +147,22 @@ $(function() {
   ]);  
   
   person.property(personOwnsFurniture, []);
-  
+  person.property(knows, []);
 
-  /*var graham = person.make([
+  var graham = person.make([
     ['name', 'graham'],
     [label, 'Graham'],
-    [personOwnsFurniture, [bigTable, smallTable]]
-  ]);*/
+    [personOwns, [grahamsHouse]],
+    [personOwnsFurniture, [bigTable]]
+  ]);
+  
+  var mirko = person.make([
+    ['name', 'mirko'],
+    [label, 'Mirko'],
+    [personOwns, [myHouse]],
+    [knows, [graham]]
+  ]);
+  
   thingStore.commit();
   $('#log').append ('<br>Data written to couch');
   //$('#thing').append(bigTable.myHTML() + '<br><br>');
