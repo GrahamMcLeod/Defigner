@@ -19,16 +19,18 @@ body {
   </head>
   <body>
     <script type="text/javascript+protovis">
+  // Define functions 
+  // Fetch a collection of objects from the store using a named starting point and following 1 level of relationships 
   var fetchGraph = function (startURI, nodes, links)  {
   	  var startNode = thingStore.lookup(startURI);
   	  if (startNode) {
   	    var tempNode = {nodeName: startNode.property(label), 
-  	                    group: 1};
+  	                    group: 1, uri: startNode.uri};
   	    nodes.push(tempNode);
   	    var rels = startNode.properties().filter(function(each){return each.ofType(relationship)});
         rels.forEach(function(each)
              {tempNode = {nodeName: startNode.property(each).property(label), 
-  	                    group: 1};
+  	                    group: 1, uri: startNode.property(each).uri};
               var targetIdx = (nodes.push(tempNode) - 1);
               var tempLink = {source:0, target:targetIdx, value:1, relName: each.property(label)};
               links.push(tempLink);
@@ -37,9 +39,10 @@ body {
       
       }
   };
-  var startItem = 'uri:thing/person/graham';
-  var tempNodes = [];
-  var tempLinks = [];
+  // Initialise Panel
+  var vis;
+  // Render graph of retrieved objects on browser
+  var renderGraph=function (startItem, tempNodes, tempLinks) {
   fetchGraph(startItem, tempNodes, tempLinks);
   var items = {
         nodes: tempNodes,
@@ -50,13 +53,7 @@ body {
        h = document.body.clientHeight,
        colors = pv.Colors.category19();
    
-   var vis = new pv.Panel()
-       .width(w)
-       .height(h)
-       .fillStyle("white")
-       .event("mousedown", pv.Behavior.pan())
-       .event("mousewheel", pv.Behavior.zoom());
-   
+     
    var force = vis.add(pv.Layout.Force)
        .nodes(items.nodes)
        .links(items.links)
@@ -74,19 +71,33 @@ body {
           .textBaseline("middle");
           
    
-   force.node.add(pv.Dot)
-       .size(function(d) 100 * Math.pow(this.scale, -1.5))
+   force.node.add(pv.Bar)
+      // .size(function(d) 100 * Math.pow(this.scale, -1.5))
+       .width(120)
+       .height(30)
        .fillStyle(function(d) d.fix ? "brown" : colors(d.group))
        .strokeStyle(function() this.fillStyle().darker())
        .lineWidth(1)
        
-       .title(function(d) d.nodeName)
+       .title(function(d) {return JSON.stringify(thingStore.lookup(d.uri))
+        })
        .event("mousedown", pv.Behavior.drag())
+       .event("click", function(d) {renderGraph(d.uri, tempNodes, tempLinks) })
        .event("drag", force)
-       .anchor("bottom").add(pv.Label)
+       .anchor("center").add(pv.Label)
           .text( function (d) d.nodeName);
    
    vis.render();
+   }
+  // Initialise collections and set initial start item, then fetch data and render
+  vis = new pv.Panel()
+       .width(w)
+       .height(h)
+       .fillStyle("white")
+       .event("mousedown", pv.Behavior.pan())
+       .event("mousewheel", pv.Behavior.zoom());
+  var startItem = 'uri:thing/person/graham';
+  renderGraph (startItem, [], []);
     </script>
   </body>
 </html>
