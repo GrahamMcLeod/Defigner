@@ -49,6 +49,14 @@ $(function() {
     [height, 100]
   ]);
   
+  var smallTable = table.make([
+    ['name', 'small_table'],
+    [label, 'Small Table'],
+    [legs, 4],
+    [height, 100]
+  ]);
+
+  
   var house = thing.make([
     ['name', 'house'],
     [label, 'House']
@@ -82,6 +90,14 @@ $(function() {
     ['range', furniture]
   ]);
   
+  var personOwnsTable = relationship.make([
+    ['name', 'person_owns_table'],
+    [label, 'owns'],
+    ['domain', person],
+    ['range', table]
+  ]);
+
+  
   var furnitureOwnedByPerson = relationship.make([
     ['name', 'furniture_owned_by_person'],
     [label, 'owned by'],
@@ -94,7 +110,8 @@ $(function() {
   var graham = person.make([
     ['name', 'graham'],
     [label, 'Graham'],
-    [personOwnsFurniture, bigTable]
+    [personOwnsFurniture, bigTable],
+    [personOwnsTable, smallTable]
   ]);
   thingStore.commit();
   $('#log').append ('<br>Data written to couch');
