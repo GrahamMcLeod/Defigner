@@ -31,8 +31,8 @@ $(function() {
   //defining some things holding the properties:
   var furniture = thing.make([
     ['name', 'furniture'],
-    [createdAt, undefined],
-    [colour, undefined]
+    [createdAt, 1900],
+    [colour, '']
   ]);
   
   var table = furniture.make([
@@ -63,7 +63,7 @@ $(function() {
   ]);
   
   //adding that relationship to the House prototype
-  house.property(houseHasFurniture, undefined);
+  house.property(houseHasFurniture, furniture);
   
   var myHouse = house.make([
     ['name', 'myHouse'],
@@ -75,20 +75,21 @@ $(function() {
     [label, 'Person']
   ]);
   
-  var personOwnsFurniture = property.make([
+  var personOwnsFurniture = relationship.make([
     ['name', 'person_owns_furniture'],
     [label, 'owns'],
     ['domain', person],
     ['range', furniture]
   ]);
   
-  var furnitureOwnedByPerson = property.make([
+  var furnitureOwnedByPerson = relationship.make([
     ['name', 'furniture_owned_by_person'],
     [label, 'owned by'],
     ['inverse', personOwnsFurniture]
   ]);
   
-  person.property(personOwnsFurniture, undefined);
+  
+  person.property(personOwnsFurniture, furniture);
   
   var graham = person.make([
     ['name', 'graham'],

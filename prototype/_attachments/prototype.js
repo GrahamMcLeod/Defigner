@@ -6,6 +6,9 @@ var thingStore = {
     var thing = this.localData[uri];
     if(!thing) {
       thing = this.persistedData[uri];
+      if(!thing) {
+        throw new Error('URI not found');
+      }
     }
     return thing;
   },
@@ -37,6 +40,13 @@ var thingStore = {
     });
     //this.db.saveDoc({_id: encodedURI, thing: thing});
   },
+  load: function(uri) {
+    $.get(that.db + '/' + encodedURI, function(data) {
+      var oldDoc = JSON.parse(data);
+      var rev = oldDoc._rev;
+      that.saveThingToCouch(thing, cb, rev);
+    });
+  },
   revert: function() {
     this.localData = {};
   },
@@ -53,6 +63,9 @@ var thingStore = {
     }, function() {
     
     });
+  },
+  encodeURI: function(uri) {
+  
   }
 };
 
@@ -173,7 +186,7 @@ var thing = {
   property: function(name, value) {
     if(!value) {
       var value = this[name];
-      if(['range', 'domain', 'prototype', 'inverse'].indexOf(name) > -1) value = thingStore.lookup(value);
+      if((['range', 'domain', 'prototype', 'inverse'].indexOf(name) > -1) && value) value = thingStore.lookup(value);
       if(name.isAThing) {
         if(! name.property('range').ofType('uri:thing/literal')) {
           value = thingStore.lookup(value);
@@ -214,6 +227,15 @@ var thing = {
         }
       }
     }
+  },
+  properties: function() {
+    var props = [];
+    for(var prop in this) {
+      if(prop.indexOf('uri:') > -1) {
+        props.push(thingStore.lookup(prop));
+      }
+    }
+    return props;
   },
   method: function(name, value) {
     if(!value) return this[name];
@@ -288,6 +310,11 @@ var label = property.make([
 var description = property.make([
   ['name', 'description'],
   ['range', string]
+]);
+
+var relationship = property.make([
+  ['name', 'relationship'],
+  [label, 'a relationship']
 ]);
 
 thingStore.commit();
