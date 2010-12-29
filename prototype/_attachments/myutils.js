@@ -62,8 +62,14 @@ function stringifyFunctions(x) {
   }
 }
 
-function arrayForEach(array, fn, cb) {
+function arrayForEachParallel(array, fn, cb) {
   doParallel(array.map(function(each) {
+    return function(eachCb) {fn(each, eachCb)}
+  }), cb);
+}
+
+function arrayForEachLinear(array, fn, cb) {
+  doLinear(array.map(function(each) {
     return function(eachCb) {fn(each, eachCb)}
   }), cb);
 }

@@ -1,89 +1,104 @@
-//defining a furniture prototype
+//defining some properties to use:
+var createdAt = property.make([
+  ['name', 'created_at'],
+  [label, 'created At'],
+  ['range', date]
+]);
+
+var colour = property.make([
+  ['name', 'colour'],
+  [label, 'colour'],
+  ['range', string]
+]);
+
+var legs = property.make([
+  ['name', 'legs'],
+  [label, 'Legs'],
+  [description, 'number of legs'],
+  ['range', number]
+]);
+
+var height = property.make([
+  ['name', 'height'], 
+  [label, 'height'], 
+  [description, 'height in centimeters'],
+  ['range', number]
+]);
+
+//defining some things holding the properties:
 var furniture = thing.make([
   ['name', 'furniture'],
-  [date.make('createdAt'), undefined],
-  [string.make('colour'), undefined]
-]);
-
-/*furniture.on('created', function(thing) {
-  thing.property('createdAt', new Date());
-});*/
-
-//when using the property types defined in the prototype you only need to give the value,
-//when defining new properties you need to make the type explicit
-var legs = number.make([
-  ['name', 'legs'], 
-  ['description', 'number of legs']
-]);
-
-var height = number.make([
-  ['name', 'height'], 
-  ['description', 'height in centimeters']
+  [createdAt, undefined],
+  [colour, undefined]
 ]);
 
 var table = furniture.make([
   ['name', 'table'],
-  ['colour', 'brown'],
+  [colour, 'brown'],
   [legs, 4],
   [height, 100]
 ]);
 
 var bigTable = table.make([
-  ['name', 'bigTable'],
-  ['legs', [
-    ['value', 6],
-    ['description', 'a modified description']
-  ]],
-  ['height', 100]
+  ['name', 'big_table'],
+  [label, 'Big Table'],
+  [legs, 6],
+  [height, 100]
 ]);
 
 var house = thing.make([
   ['name', 'house'],
-  [link.make('has'), undefined]
+  [label, 'House']
 ]);
+
+//defining a relationship between House and Furniture
+var houseHasFurniture = property.make([
+  ['name', 'house_has'],
+  [label, 'has'],
+  ['domain', house],
+  ['range', furniture]
+]);
+
+//adding that relationship to the House prototype
+house.property(houseHasFurniture, undefined);
 
 var myHouse = house.make([
   ['name', 'myHouse'],
-  ['has', bigTable]
+  [houseHasFurniture, bigTable]
 ]);
 
-var owns = relationship.make([
-  ['name', 'owns'],
-  ['inverseRelationship', 'ownedBy']
+var furnitureOwnedByPerson = property.make([
+  ['name', 'furniture_owned_by_person'],
+  [label, 'owned by'],
+  ['inverse', personOwnsFurniture]
 ]);
 
 var person = thing.make([
   ['name', 'person'],
-  [owns, furniture]
+  [label, 'Person']
 ]);
 
+var personOwnsFurniture = property.make([
+  ['name', 'person_owns_furniture'],
+  [label, 'owns'],
+  ['domain', person],
+  ['range', furniture]
+]);
 
+person.property(personOwnsFurniture, undefined);
 
-var triples = [];
-for(var uri in thingStore) {
-  for(var pred in thingStore[uri]) {
-    if((typeof thingStore[uri][pred] != 'function') && (thingStore[uri].hasOwnProperty(pred))) {
-      triples.push([uri, pred, thingStore[uri][pred]]);    
-    }
-  }
-}
+var graham = person.make([
+  ['name', 'graham'],
+  [label, 'Graham'],
+  [personOwnsFurniture, bigTable]
+]);
 
-html = '<table><tr style="font-weight: bold"><td>Subject</td><td>Predicate</td><td>Object</td></tr>';
-triples.forEach(function(row) {
-  html += '<tr>';
-  row.forEach(function(column) {
-    html += '<td>' + column + '</td>';
-  });
-  html += '</tr>';
-});
-html += '</table>';
+thingStore.commit();
 
 $(function() {
-  $('#log').html(html);
-  //thingStore.flushToCouch();
   $('#log').append ('<br>Data written to couch');
-  $('#thing').append(bigTable.myHTML() + '<br><br>');
-  $('#thing').append(furniture.myHTML());
+  //$('#thing').append(bigTable.myHTML() + '<br><br>');
+  //$('#thing').append(furniture.myHTML());
 });
 
 
