@@ -92,6 +92,10 @@ var thing = {
   namespace: 'default_context',
   isAThing: true,
   toString: function() {return this.uri},
+  label: function() {
+    var labelProp = thingStore.lookup('uri:thing/property/label');
+    return this.property(labelProp);
+  },
   serialize: function() {
     var serializedThing = {functions: []};
     for(var prop in this) {
@@ -112,20 +116,10 @@ var thing = {
   },
   view: function() {
     var properties = [];
-    for(var prop in this) {
-      var propertyType = thingStore.lookup(prop);
-      if(propertyType) {
-        var label = propertyType.toString();
-        var value = this.property(propertyType);
-        if(value) {
-          if(value.isAThing) {
-            value = value.toString();
-          }
-        }
-        var uri = prop;
-        properties.push({label: label, value: value, uri: uri});
-      }
-    }
+    var that = this;
+    this.properties().forEach(function(prop) {
+      properties.push({label: prop.label(), value: that.propertyLabel(prop), uri: prop.uri});
+    });
     return {name: this.name, uri: this.uri, properties: properties};
   },
   myText:  function () {var tempText='';
@@ -198,6 +192,22 @@ var thing = {
     }
     newObj.store();
     return newObj;
+  },
+  propertyLabel: function(prop) {
+    var that = this;
+    var value = that.property(prop)
+    if(prop.ofType('uri:thing/property/collection')) {
+      if(!prop.property('range').ofType('uri:thing/literal')) {
+        var value = value.map(function(each) {
+          return {label: each.label(), uri: each.uri}
+        });
+      }
+    } else {
+      if(!prop.property('range').ofType('uri:thing/literal')) {
+        value = {label: value.label(), uri: value.uri}
+      }
+    }
+    return value;
   },
   property: function(name, value) {
     var that = this;
@@ -366,7 +376,8 @@ var property = thing.make([
 //a basic label property
 var label = property.make([
   ['name', 'label'],
-  ['range', string]
+  ['range', string],
+  ['label', function() {return this.name}]
 ]);
 
 //a description property
