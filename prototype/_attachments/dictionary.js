@@ -21,4 +21,3 @@ var createDictionary = function(thingStore) {
   }
   return dict;
 }
-
