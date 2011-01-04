@@ -57,14 +57,14 @@ var thing = {
   propHTML: function () {
     return this.property ('name')
   },
-  make: function(nameOrArray, markAsPersisted) {
-    newThing = this.parse(nameOrArray);
-    if(!markAsPersisted) {
+  make: function(nameOrArray, createFromDB) {
+    newThing = this.parse(nameOrArray, createFromDB);
+    if(!createFromDB) {
       newThing.store();
     }
     return newThing;
   },
-  parse: function(nameOrArray) {
+  parse: function(nameOrArray, createFromDB) {
     var F = function() {};
     F.prototype = this;
     var newThing = new F();
@@ -81,9 +81,9 @@ var thing = {
       if(!newThing.hasOwnProperty('uri')) {
           newThing.uri = this.uri + '/' + encodeURIComponent(newThing.name).toLowerCase();        
       }
-      newThing.extend(nameOrArray);      
+      newThing.extend(nameOrArray);
     }
-    if(newThing.postMake) newThing.postMake();
+    if(newThing.postMake && (!createFromDB)) newThing.postMake();
     return newThing;    
   },
   store: function() {
