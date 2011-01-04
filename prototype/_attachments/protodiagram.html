@@ -7,9 +7,8 @@
      <script src="jquery.tools.min.js"></script>
      <script src="myutils.js"></script>
      <script src="ICanHaz.min.js" ></script>
-
-    <script type="text/javascript" src= "prototype.js"></script>
-    <script type="text/javascript" src= "examples.js"></script>
+     <script src="thingstore.js"></script>
+     <script src="dictionary.js"></script>
     
      <script id="outForm" type="text/html">      
 {{#properties}}
@@ -30,6 +29,22 @@ body {
   
   
     <script type="text/javascript+protovis">
+  // Setup user information 
+  var userInfo = {
+    name: 'example_user',
+    addUserInfo: function(thing) {
+      thing.property('modified_by', this.name);
+    },
+    postMake: function(thing) {
+      thing.property('last_modified', new Date());
+      this.addUserInfo(thing);
+    }
+  };
+  thingStore.userInfo(userInfo);
+  dict = createDictionary(thingStore);
+  var label = dict('label');
+  alert (label);
+ 
   // Define functions 
   // Fetch a collection of objects from the store using a named starting point and following 1 level of relationships 
   var fetchGraph = function (startURI, nodes, links) {
