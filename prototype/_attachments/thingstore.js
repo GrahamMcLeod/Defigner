@@ -251,7 +251,7 @@ var thing = {
     return this.uri.indexOf(type) == 0;
   }
 };
-
+// Define the thingStore which holds the collection of things created and provides methods to manipulate objects
 var thingStore = {
   localData: {},
   persistedData: {'uri:thing': thing},
@@ -259,7 +259,25 @@ var thingStore = {
   userInfo: function(userInfo) {
     this.userInfoCached = userInfo;
   },
-  
+  prototypes: function (parent) {
+    if (parent == undefined) {
+      parent = thing;
+    }     
+    
+    var encodedURI = encodeURI(parent.uri.replace(/\//g, '_'));
+    $.ajax({
+      type: 'GET',
+      async: true,
+      url: this.db + '/_design/prototype/_view/prototypes?key=' + JSON.stringify(encodedURI),
+      success: function(data) { 
+        var prototypeList = [];
+        data.rows.forEach (function (each) { 
+          prototypeList.push (this.parseJSON (each.doc))          
+        });
+      }
+    });
+    
+  }
   lookup: function(uri, cb) {
     var thing = this.localData[uri];
     if(!thing) {
@@ -308,7 +326,11 @@ var thingStore = {
       success: function(data) {
       }
     }).responseText;
-    var doc = JSON.parse(doc);
+    return this.parseJSON (doc);
+  },
+  // Create thing from JSON version ex database
+  parseJSON: function(jsonDoc){
+   var doc = JSON.parse(jsonDoc);
     var thingData = [];
     var functions = doc.thing.functions;
     delete doc.thing.functions;
