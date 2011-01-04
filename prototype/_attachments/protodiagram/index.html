@@ -1,0 +1,107 @@
+<html>
+  <head>
+    <title>Force-Directed Layout</title>
+    
+    <script type="text/javascript" src="../protovis-d3.2.js"></script>
+     <script src="../jquery.min.js"></script>
+     <script src="../jquery-ui.custom.min.js"></script>
+     <script src="../jquery.tools.min.js"></script>
+     <script src="../myutils.js"></script>
+     <script src="../ICanHaz.min.js" ></script>
+     <script src="../thingstore.js"></script>
+     <script src="../dictionary.js"></script>
+     <script src="main.js"></script>
+     <link rel="stylesheet" href="../css/ui-lightness/jquery-ui.custom.css"/>
+    <style type="text/css">
+
+body {
+  margin: 0;
+}
+
+    </style>
+  </head>
+  <body>
+     <script id="outForm" type="text/html">      
+{{#properties}}
+{{label}}: {{value}}
+{{/properties}}   
+    </script>
+  <script type="text/javascript+protovis">
+  // Setup user information 
+
+  // Initialise Panel
+  // Render graph of retrieved objects on browser
+  var renderGraph=function (startItem, tempNodes, tempLinks, update) {
+    fetchGraph(startItem, tempNodes, tempLinks);
+    var items = {
+      nodes: tempNodes,
+      links: tempLinks   
+    };
+    var nodeScale = Math.max(2, ((w * h) / items.nodes.length) * 0.02);
+    var w = document.body.clientWidth;
+    var h = document.body.clientHeight;
+    var colors = pv.Colors.category19();
+    var vis = new pv.Panel()
+      .width(w)
+      .height(h)
+      .fillStyle("white")
+      .event("mousedown", pv.Behavior.pan())
+      .event("mousewheel", pv.Behavior.zoom()); 
+          
+    var force = vis.add(pv.Layout.Force)
+      .nodes(items.nodes)
+      .links(items.links)
+      .dragConstant(0.04)
+      //.springLength(Math.max(15, Math.pow(nodeScale, 0.75)));
+      .springLength(150)
+      .chargeConstant(-10)
+      .springConstant(0.15);
+    
+    force.link.add(pv.Line)
+      .add(pv.Label)
+        .text(function (d, e) {return e.relName})
+        .data(function(p) {
+          return [{
+          x: (p.sourceNode.x + p.targetNode.x) / 2,
+          y: (p.sourceNode.y + p.targetNode.y) / 2
+          }]
+        })
+        .textAlign("center")
+        .textBaseline("middle");
+           
+    force.node.add(pv.Bar)
+      .width(90)
+      .height(20)
+      .fillStyle(function(d)  {
+        var nodeColour = colors(d.group);
+        if (d.thing.isAPrototype) {
+          nodeColour = nodeColour.darker();}
+        else {nodeColour = nodeColour.brighter()}; 
+        return nodeColour
+        })
+      .strokeStyle(function() {
+        return this.fillStyle().darker()
+      })
+      .lineWidth(1)        
+      .title(function(d) {
+        return viewToHTML (thingStore.lookup(d.uri).view())
+      })
+      .event("mousedown", pv.Behavior.drag())
+      .event("click", function(d) {
+        fetchGraph(d.uri, tempNodes, tempLinks, {x: d.x, y: d.y});
+        force.reset();
+        force.nodes(tempNodes);
+        force.links(tempLinks);
+        force.render();
+      })
+      .event("drag", force)
+      .anchor("center").add(pv.Label)
+        .text(function(d) {return d.nodeName});
+      vis.render();
+  }
+  // Initialise collections and set initial start item, then fetch data and render
+  var startItem = 'uri:thing/person/graham';
+  renderGraph (startItem, [], []);
+  </script>
+  </body>
+</html>

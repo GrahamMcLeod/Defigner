@@ -1,5 +1,5 @@
 var bootstrap = function(thingStore) {
-  
+  var thing = thingStore.lookup('uri:thing');
   //the basic data types:
   var literal = thing.make([
     ['name', 'literal'],

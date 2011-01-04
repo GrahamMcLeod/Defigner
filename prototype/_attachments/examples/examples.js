@@ -2,6 +2,7 @@
 
 var runExamples = function(dict) {
   // initializing some variables using the dictionary:
+  var thing = dict('thing');
   var label = dict('label');
   var string = dict('string');
   var number = dict('number');

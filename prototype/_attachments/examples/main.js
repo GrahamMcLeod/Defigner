@@ -10,7 +10,7 @@ $(function() {
       this.addUserInfo(thing);
     }
   };
-  thingStore.userInfo(userInfo);
+  thingStore = createThingStore('prototype', userInfo);
   dict = createDictionary(thingStore);
   runExamples(dict);
   thingStore.commit();
