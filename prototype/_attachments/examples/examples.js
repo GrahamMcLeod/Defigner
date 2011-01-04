@@ -1,11 +1,20 @@
 
 
-$(function() {
-//defining some properties to use:
+var runExamples = function(dict) {
+  // initializing some variables using the dictionary:
+  var label = dict('label');
+  var string = dict('string');
+  var number = dict('number');
+  var property = dict('property');
+  var description = dict('description');
+  var collection = dict('collection');
+  var relationship = dict('relationship');
+  
+//defining some properties to use:  
   var createdAt = property.make([
     ['name', 'created_at'],
     [label, 'created At'],
-    ['range', date]
+    ['range', dict('date')]
   ]);
   
   var colour = property.make([
@@ -162,11 +171,7 @@ $(function() {
     [personOwns, [myHouse]],
     [knows, [graham]]
   ]);
-  
-  thingStore.commit();
-  $('#log').append ('<br>Data written to couch');
-  //$('#thing').append(bigTable.myHTML() + '<br><br>');
-  //$('#thing').append(furniture.myHTML());
-});
+//$('#log').append ('<br>Data written to couch');
+};
 
 

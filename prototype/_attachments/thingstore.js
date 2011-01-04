@@ -1,99 +1,3 @@
-var userInfo = {
-  name: 'default_user',
-  name: function() {return this.name},
-  postMake: function(thing) {
-    thing.property('last_modified', new Date());
-    
-  }
-};
-
-var thingStore = {
-  localData: {},
-  persistedData: {},
-  db: "/prototype",
-  lookup: function(uri, cb) {
-    var thing = this.localData[uri];
-    if(!thing) {
-      thing = this.persistedData[uri];
-      if(!thing) {
-        var thing = this.load(uri);
-        if(!thing) {
-          throw new Error('URI not found');
-        }
-      }
-    }
-    return thing;
-  },
-  save: function(thing) {
-    this.localData[thing.uri] = thing;
-  },
-  saveThingToCouch: function(thing, cb, rev) {
-    var that = this;
-    var thingSerialized = thing.serialize();
-    var encodedURI = encodeURI(thing.uri.replace(/\//g, '_'));
-    var doc = {_id: encodedURI, thing: thingSerialized};
-    if(rev) doc._rev = rev;
-    $.ajax({
-      type: 'POST',
-      url: this.db,
-      data: JSON.stringify(doc),
-      contentType: 'application/json',
-      success: function(data) {cb()},
-      error: function(data) {
-        $.get(that.db + '/' + encodedURI, function(data) {
-          var oldDoc = JSON.parse(data);
-          var rev = oldDoc._rev;
-          that.saveThingToCouch(thing, cb, rev);
-        });
-      }
-    });
-    //this.db.saveDoc({_id: encodedURI, thing: thing});
-  },
-  load: function(uri, cb) {
-    var encodedURI = encodeURI(uri.replace(/\//g, '_'));
-    var doc = $.ajax({
-      type: 'GET',
-      async: false,
-      url: this.db + '/' + encodedURI,
-      success: function(data) {
-      }
-    }).responseText;
-    var doc = JSON.parse(doc);
-    var thingData = [];
-    var functions = doc.thing.functions;
-    delete doc.thing.functions;
-    for(var prop in doc.thing) {
-      var value = doc.thing[prop];
-      if(functions.indexOf(prop) > -1) eval('value = ' + value);
-      thingData.push([prop, value]);
-    }
-    var prototype = this.lookup(doc.thing.prototype);
-    var thing = prototype.make(thingData);
-    this.persistedData[thing.uri] = thing;
-    return thing;
-  },
-  revert: function() {
-    this.localData = {};
-  },
-  commit: function() {
-    var that = this;
-    var things = [];
-    for(var uri in this.localData) {
-      things.push(this.localData[uri]);
-      this.persistedData[uri] = this.localData[uri];
-      delete this.localData[uri];
-    }
-    arrayForEachLinear(things, function(each, cb) {
-      that.saveThingToCouch(each, cb)
-    }, function() {
-    
-    });
-  },
-  encodeURI: function(uri) {
-  
-  }
-};
-
 var thing = {
   name: 'thing',
   uri: 'uri:thing',
@@ -150,12 +54,14 @@ var thing = {
   	}
   	return tempHTML;
   },
-  propHTML: function () {return this.property ('name')
+  propHTML: function () {
+    return this.property ('name')
   },
-  make: function(nameOrArray) {
+  make: function(nameOrArray, markAsPersisted) {
     newThing = this.parse(nameOrArray);
-    userInfo.postMake(newThing);
-    newThing.store();
+    if(!markAsPersisted) {
+      newThing.store();
+    }
     return newThing;
   },
   parse: function(nameOrArray) {
@@ -342,100 +248,94 @@ var thing = {
     return this.uri.indexOf(type) == 0;
   }
 };
-thing.store();
 
-
-//the basic data types:
-var literal = thing.make([
-  ['name', 'literal'],
-]);
-
-var string = literal.make([
-  ['name', 'string'],
-  ['validateProperty', function(value) {return (typeof value == 'string') | (value == undefined)}]
-]);
-
-var boolean = literal.make([
-  ['name', 'boolean'],
-  ['validateProperty', function(value) {return (typeof value == 'boolean')}]
-]);
-
-var number = literal.make([
-  ['name', 'number'],
-  ['validateProperty', function(value) {return (typeof value == 'number') | (value == undefined)}]
-]);
-
-var date = literal.make([
-  ['name', 'date'],
-  ['validateProperty', function(value) {return true}]
-]);
-
-//the property prototype
-var property = thing.make([
-  ['name', 'property'],
-  ['domain', thing],
-  ['range', thing],
-  ['collection', false],
-  ['postMake', function() {
-    var inverse = this.property('inverse');
-    if(inverse) {
-      var domain = inverse.property('range');
-      var range = inverse.property('domain');
-      this.property('domain', domain);
-      this.property('range', range);
-      inverse.property('inverse', this);
+var thingStore = {
+  localData: {},
+  persistedData: {'uri:thing': thing},
+  db: "/prototype",
+  userInfo: function(userInfo) {
+    this.userInfoCached = userInfo;
+  },
+  lookup: function(uri, cb) {
+    var thing = this.localData[uri];
+    if(!thing) {
+      thing = this.persistedData[uri];
+      if(!thing) {
+        var thing = this.load(uri);
+        if(!thing) {
+          throw new Error('URI not found');
+        }
+      }
     }
-  }]
-]);
-
-//a basic label property
-var label = property.make([
-  ['name', 'label'],
-  ['range', string],
-  ['label', function() {return this.name}]
-]);
-
-//a description property
-var description = property.make([
-  ['name', 'description'],
-  ['range', string]
-]);
-
-var collection = property.make([
-  ['name', 'collection'],
-  ['collection', true],
-  [label, 'a property with multiple values']
-]);
-
-var relationship = collection.make([
-  ['name', 'relationship'],
-  [label, 'a relationship']
-]);
-
-// relationship to set types
-var ofType = collection.make([
-  ['name', 'of_type'],
-  [label, 'of Type'],
-]);
-
-// property value to be used to declare a thing as a type
-var type = thing.make([
-  ['name', 'type'],
-  [label, 'Type']
-]);
-
-// types to define security and visibility
-var hiddenThing = thing.make([
-  ['name', 'hidden_thing'],
-  [label, 'hidden thing'],
-  [ofType, [type]]
-]);
-
-var systemThing = thing.make([
-  ['name', 'system_thing'],
-  [label, 'system thing'],
-  [ofType, [type]]
-]);
-
-
-thingStore.commit();
+    return thing;
+  },
+  save: function(thing) {
+    this.localData[thing.uri] = thing;
+  },
+  saveThingToCouch: function(thing, cb, rev) {
+    var that = this;
+    this.userInfoCached.postMake(thing);
+    var thingSerialized = thing.serialize();
+    var encodedURI = encodeURI(thing.uri.replace(/\//g, '_'));
+    var doc = {_id: encodedURI, thing: thingSerialized};
+    if(rev) doc._rev = rev;
+    $.ajax({
+      type: 'POST',
+      url: this.db,
+      data: JSON.stringify(doc),
+      contentType: 'application/json',
+      success: function(data) {cb()},
+      error: function(data) {
+        $.get(that.db + '/' + encodedURI, function(data) {
+          var oldDoc = JSON.parse(data);
+          var rev = oldDoc._rev;
+          that.saveThingToCouch(thing, cb, rev);
+        });
+      }
+    });
+    //this.db.saveDoc({_id: encodedURI, thing: thing});
+  },
+  load: function(uri, cb) {
+    var encodedURI = encodeURI(uri.replace(/\//g, '_'));
+    var doc = $.ajax({
+      type: 'GET',
+      async: false,
+      url: this.db + '/' + encodedURI,
+      success: function(data) {
+      }
+    }).responseText;
+    var doc = JSON.parse(doc);
+    var thingData = [];
+    var functions = doc.thing.functions;
+    delete doc.thing.functions;
+    for(var prop in doc.thing) {
+      var value = doc.thing[prop];
+      if(functions.indexOf(prop) > -1) eval('value = ' + value);
+      thingData.push([prop, value]);
+    }
+    var prototype = this.lookup(doc.thing.prototype);
+    var thing = prototype.make(thingData, true);
+    this.persistedData[thing.uri] = thing;
+    return thing;
+  },
+  revert: function() {
+    this.localData = {};
+  },
+  commit: function() {
+    var that = this;
+    var things = [];
+    for(var uri in this.localData) {
+      things.push(this.localData[uri]);
+      this.persistedData[uri] = this.localData[uri];
+      delete this.localData[uri];
+    }
+    arrayForEachLinear(things, function(each, cb) {
+      that.saveThingToCouch(each, cb)
+    }, function() {
+    
+    });
+  },
+  encodeURI: function(uri) {
+  
+  }
+};
