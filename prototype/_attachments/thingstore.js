@@ -58,9 +58,12 @@ var thing = {
     return this.property ('name')
   },
   make: function(nameOrArray, createFromDB) {
-    newThing = this.parse(nameOrArray, createFromDB);
+    var newThing = this.parse(nameOrArray, createFromDB);
     if(!createFromDB) {
+      newThing.property ("isPrototype", false);
       newThing.store();
+      this.property ("isPrototype", true);
+      this.store();
     }
     return newThing;
   },
@@ -132,7 +135,7 @@ var thing = {
   },
   property: function(name, value) {
     var that = this;
-    if(!value) {
+    if(value == undefined) {
       var value = this[name];
       if(!value) return value;
       if((['range', 'domain', 'prototype', 'inverse'].indexOf(name) > -1) && value) value = thingStore.lookup(value);
@@ -256,6 +259,7 @@ var thingStore = {
   userInfo: function(userInfo) {
     this.userInfoCached = userInfo;
   },
+  
   lookup: function(uri, cb) {
     var thing = this.localData[uri];
     if(!thing) {
