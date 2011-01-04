@@ -60,6 +60,7 @@ body {
       if(!pos && (pos != 0)) {
         var tempNode = {
           nodeName: node.property(label), 
+          thing: node,
           group: 1,
           uri: node.uri
         };
@@ -145,7 +146,13 @@ body {
     force.node.add(pv.Bar)
         .width(90)
         .height(20)
-        .fillStyle(function(d) d.fix ? "brown" : colors(d.group))
+        .fillStyle(function(d)  {
+          var nodeColour = colors(d.group);
+          if (d.thing.isPrototype) {
+            nodeColour = nodeColour.darker();}
+          else {nodeColour = nodeColour.brighter()}; 
+          return nodeColour
+          })
         .strokeStyle(function() this.fillStyle().darker())
         .lineWidth(1)        
         .title(function(d) {
