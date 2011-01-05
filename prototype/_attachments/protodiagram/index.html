@@ -5,6 +5,7 @@
     <script type="text/javascript" src="../protovis-d3.2.js"></script>
      <script src="../jquery.min.js"></script>
      <script src="../jquery-ui.custom.min.js"></script>
+     <script src="../jquery.treeview.js"></script>
      <script src="../myutils.js"></script>
      <script src="../ICanHaz.min.js" ></script>
      <script src="../thingstore.js"></script>
@@ -12,6 +13,7 @@
      <script src="main.js"></script>
      <script src="ui.js"></script>
      <link rel="stylesheet" href="../css/smoothness/jquery-ui.custom.css"/>
+     <link rel="stylesheet" href="../jquery.treeview.css"/>
     <style type="text/css">
 
 body {
@@ -35,23 +37,23 @@ body {
   <div id="tab-details">
     <table>
       <tr>
-        <td id="thing-list">
-          <script id="prototypeListTemplate" type="text/html">
+        <td>
+          <script id="thingListTemplate" type="text/html">
             <ul>
-            {{#things}}
-              <li class="thing prototype" uri="{{uri}}">{{label}}</li>
-            {{/things}}
-            </table>
-          </script>     
-          <script id="instanceListTemplate" type="text/html">
-            <ul>
-            {{#things}}
-              <li class="thing instance" uri="{{uri}}">{{label}}</li>
-            {{/things}}
-            </table>
+              <li class="" uri="{{uri}}">
+                <span class="thing parent" uri="{{uri}}">{{label}}</span>
+                <ul>
+                  {{#prototypes}}
+                  <li class="tree-prototype" uri="{{uri}}"><span href="#" class="thing prototype" uri="{{uri}}">{{label}}</span></li>
+                  {{/prototypes}}
+                  {{#instances}}
+                  <li><span class="thing instance" uri="{{uri}}">{{label}}</span></li>
+                  {{/instances}}
+                </ul>
+              </li>
+            </ul>
           </script>
-          <div id="prototype-list"></div>
-          <div id="instance-list"></div>    
+          <div id="thing-list"></div>   
         </td>
         <td>
           <script id="thingDetailsTemplate" type="text/html">

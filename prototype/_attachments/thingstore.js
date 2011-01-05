@@ -9,7 +9,12 @@ var createThingStore = function(db, userInfo) {
     toString: function() {return this.uri},
     label: function() {
       var labelProp = thingStore.lookup('uri:thing/property/label');
-      return this.property(labelProp);
+      var label = this.property(labelProp);
+      if(label) {
+        return label;
+      } else {
+        return this.name;
+      }
     },
     serialize: function() {
       var serializedThing = {functions: []};
