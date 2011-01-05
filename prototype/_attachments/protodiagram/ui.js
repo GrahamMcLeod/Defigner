@@ -8,6 +8,21 @@ var loadPrototypeList = function(parent, cb) {
     cb(formattedList);
   })
 }
+var loadPrototypeListRecursive = function(parent, cb) {
+  thingStore.prototypes(parent, function(prototypeList) {
+    var prototypeData = prototypeList.map( function(each) {
+      return {prototype: each, subprototypes: []}
+    });
+    arrayForEachLinear(prototypeData, function(each, forEachCb) {
+      loadPrototypeListRecursive(each.prototype, function(data) {
+        each.subprototypes = data;
+        forEachCb();
+      })
+    }, function() {
+      cb(prototypeData);
+    });
+  })
+}
 var loadInstanceList = function(parent, cb) {
   thingStore.instances(parent, function(prototypeList) {
     formattedList = prototypeList.map( function(each) {

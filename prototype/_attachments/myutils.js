@@ -10,12 +10,12 @@ function copyArray(a) {
 function doParallel(functions, cb) {
   var count = functions.length;
   functions.forEach(function(each) {
-    process.nextTick(function() {
+    setTimeout(function() {
       each(function() {
         count--;
         if(count == 0) cb();
       });
-    });
+    }, 0);
   });
 }
 

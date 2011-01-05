@@ -6,7 +6,9 @@ var createThingStore = function(db, userInfo) {
     namespace: 'default_context',
     isAThing: true,
     isAPrototype: true,
-    toString: function() {return this.uri},
+    toString: function() {
+      return this.uri
+    },
     label: function() {
       var labelProp = thingStore.lookup('uri:thing/property/label');
       var label = this.property(labelProp);
@@ -21,7 +23,8 @@ var createThingStore = function(db, userInfo) {
       for(var prop in this) {
         if(this.hasOwnProperty(prop)) {
           serializedThing[prop] = this[prop];
-          if(typeof this[prop] == 'function') serializedThing.functions.push(prop);
+          if(typeof this[prop] == 'function')
+            serializedThing.functions.push(prop);
         }
       }
       stringifyFunctions(serializedThing);
@@ -37,14 +40,18 @@ var createThingStore = function(db, userInfo) {
     view: function() {
       var properties = [];
       var that = this;
-      this.properties().forEach(function(prop) {
+      this.properties().forEach( function(prop) {
         properties.push({label: prop.label(), value: that.propertyLabel(prop), uri: prop.uri});
       });
       return {name: this.name, uri: this.uri, properties: properties};
     },
-    myText:  function () {var tempText='';
-                          for (var property in this) {tempText=tempText+property+': '+this[property]+'\n'};
-                          return tempText},
+    myText: function () {
+      var tempText='';
+      for (var property in this) {
+        tempText=tempText+property+': '+this[property]+'\n'
+      };
+      return tempText
+    },
     myHTML: function () {
       var tempHTML='';
       for (var property in this) {
@@ -58,8 +65,8 @@ var createThingStore = function(db, userInfo) {
           }
           tempHTML=tempHTML+'</DIV>'
         }
-    	}
-    	return tempHTML;
+      }
+      return tempHTML;
     },
     propHTML: function () {
       return this.property ('name')
@@ -71,13 +78,14 @@ var createThingStore = function(db, userInfo) {
         newThing.store();
         if(!this.isAPrototype) {
           this.isAPrototype = true;
-          this.store();     
+          this.store();
         }
       }
       return newThing;
     },
     parse: function(nameOrArray, createFromDB) {
-      var F = function() {};
+      var F = function() {
+      };
       F.prototype = this;
       var newThing = new F();
       newThing.prototype = this.uri;
@@ -86,28 +94,31 @@ var createThingStore = function(db, userInfo) {
         newThing.name = name;
         newThing.uri = this.uri + '/' + encodeURIComponent(name).toLowerCase();
       } else {
-        nameOrArray.forEach(function(each) {
-          if (each[0] == 'name') newThing.name = each[1];
-          if (each[0] == 'uri') newThing.uri = each[1];        
+        nameOrArray.forEach( function(each) {
+          if (each[0] == 'name')
+            newThing.name = each[1];
+          if (each[0] == 'uri')
+            newThing.uri = each[1];
         });
         if(!newThing.hasOwnProperty('uri')) {
-            newThing.uri = this.uri + '/' + encodeURIComponent(newThing.name).toLowerCase();        
+          newThing.uri = this.uri + '/' + encodeURIComponent(newThing.name).toLowerCase();
         }
         newThing.extend(nameOrArray);
       }
-      if(newThing.postMake && (!createFromDB)) newThing.postMake();
-      return newThing;    
+      if(newThing.postMake && (!createFromDB))
+        newThing.postMake();
+      return newThing;
     },
     store: function() {
       thingStore.save(this);
     },
     extend: function(array) {
       var thing = this;
-      array.forEach(function(each) {
+      array.forEach( function(each) {
         if(typeof each[1] == 'function') {
           thing.method(each[0], each[1]);
         } else {
-          thing.property(each[0], each[1]);      
+          thing.property(each[0], each[1]);
         }
       });
     },
@@ -116,7 +127,7 @@ var createThingStore = function(db, userInfo) {
       var value = that.property(prop)
       if(prop.hasParent('uri:thing/property/collection')) {
         if(!prop.property('range').hasParent('uri:thing/literal')) {
-          var value = value.map(function(each) {
+          var value = value.map( function(each) {
             return {label: each.label(), uri: each.uri}
           });
         }
@@ -136,21 +147,27 @@ var createThingStore = function(db, userInfo) {
       var that = this;
       if(value == undefined) {
         var value = this[name];
-        if(!value) return value;
-        if((['range', 'domain', 'prototype', 'inverse'].indexOf(name) > -1) && value) value = thingStore.lookup(value);
+        if(!value)
+          return value;
+        if((['range', 'domain', 'prototype', 'inverse'].indexOf(name) > -1) && value)
+          value = thingStore.lookup(value);
         if(name.isAThing) {
           var isCollection = name.property('collection');
           if(! name.property('range').hasParent('uri:thing/literal')) {
             if(isCollection) {
-              value = value.map(function(each) {return thingStore.lookup(each)});
+              value = value.map( function(each) {
+                return thingStore.lookup(each)
+              });
             } else {
-              value = thingStore.lookup(value);          
+              value = thingStore.lookup(value);
             }
           }
         }
         return value;
       } else {
-        if(['name', 'uri', 'namespace', 'isAThing'].indexOf(name) > -1) {return};
+        if(['name', 'uri', 'namespace', 'isAThing'].indexOf(name) > -1) {
+          return
+        };
         if(name.isAThing) {
           var domain = name.property('domain');
           var range = name.property('range');
@@ -159,38 +176,45 @@ var createThingStore = function(db, userInfo) {
           if(this.hasParent(domain)) {
             if(range.hasParent('uri:thing/literal')) {
               if(isCollection) {
-                value.forEach(function(each) {
-                  if(!range.validateProperty(each)) validRange = false;
+                value.forEach( function(each) {
+                  if(!range.validateProperty(each))
+                    validRange = false;
                 })
               } else {
-                if(!range.validateProperty(value)) validRange = false;
+                if(!range.validateProperty(value))
+                  validRange = false;
               }
               if(validRange) {
                 this[name] = value;
               }
             } else {
               if(isCollection) {
-                value.forEach(function(each) {
-                  if(!each.hasParent(range)) validRange = false;
+                value.forEach( function(each) {
+                  if(!each.hasParent(range))
+                    validRange = false;
                 });
               } else {
-                if(!value.hasParent(range)) validRange = false;
+                if(!value.hasParent(range))
+                  validRange = false;
               }
               if(validRange) {
                 var inverse = name.property('inverse');
-                if(isCollection) {            
-                  var serializedValue = value.map(function(each) {return each.uri});
+                if(isCollection) {
+                  var serializedValue = value.map( function(each) {
+                    return each.uri
+                  });
                 } else {
                   var serializedValue = value.uri;
                 }
                 this[name] = serializedValue;
-                
+
                 //check if there is inverse property defined and create if necessary
                 if(inverse) {
                   if(isCollection) {
-                    value.forEach(function(each) {
+                    value.forEach( function(each) {
                       var inversePropertyValue = each[inverse];
-                      if(!inversePropertyValue) inversePropertyValue = [];
+                      if(!inversePropertyValue)
+                        inversePropertyValue = [];
                       if(inversePropertyValue.indexOf(that.uri) == -1) {
                         inversePropertyValue.push(that.uri);
                         each[inverse] = inversePropertyValue;
@@ -202,8 +226,8 @@ var createThingStore = function(db, userInfo) {
                       value[inverse] = this.uri;
                       value.store();
                     }
-                  }               
-                }     
+                  }
+                }
               }
             }
           } else {
@@ -213,7 +237,7 @@ var createThingStore = function(db, userInfo) {
           if(value.isAThing) {
             this[name] = value.uri;
           } else {
-            this[name] = value;        
+            this[name] = value;
           }
         }
       }
@@ -228,7 +252,8 @@ var createThingStore = function(db, userInfo) {
       return props;
     },
     method: function(name, value) {
-      if(!value) return this[name];
+      if(!value)
+        return this[name];
       this[name] = value;
     },
     parentURI: function() {
@@ -238,7 +263,8 @@ var createThingStore = function(db, userInfo) {
       return thingStore.lookup[this.parentURI()];
     },
     hasParent: function(type) {
-      if(type.isAThing) type = type.uri;
+      if(type.isAThing)
+        type = type.uri;
       return this.uri.indexOf(type) == 0;
     }
   };
@@ -256,14 +282,14 @@ var createThingStore = function(db, userInfo) {
         type: 'GET',
         async: true,
         url: this.db + '/_design/prototype/_view/prototypes?include_docs=true&key=' + JSON.stringify(parent.uri),
-        success: function(jsonData) { 
+        success: function(jsonData) {
           var data = JSON.parse(jsonData);
-          var prototypeList = data.rows.map(function (each) {
+          var prototypeList = data.rows.map( function (each) {
             var localThing = that.lookupLocal(each.doc.thing.uri);
             if(localThing) {
               return localThing;
             } else {
-              return that.parseData(each.doc);                  
+              return that.parseData(each.doc);
             }
           });
           cb(prototypeList);
@@ -276,14 +302,14 @@ var createThingStore = function(db, userInfo) {
         type: 'GET',
         async: true,
         url: this.db + '/_design/prototype/_view/instances?include_docs=true&key=' + JSON.stringify(parent.uri),
-        success: function(jsonData) { 
+        success: function(jsonData) {
           var data = JSON.parse(jsonData);
-          var prototypeList = data.rows.map(function (each) {
+          var prototypeList = data.rows.map( function (each) {
             var localThing = that.lookupLocal(each.doc.thing.uri);
             if(localThing) {
               return localThing;
             } else {
-              return that.parseData(each.doc);                  
+              return that.parseData(each.doc);
             }
           });
           cb(prototypeList);
@@ -315,13 +341,16 @@ var createThingStore = function(db, userInfo) {
       var thingSerialized = thing.serialize();
       var encodedURI = encodeURI(thing.uri.replace(/\//g, '_'));
       var doc = {_id: encodedURI, thing: thingSerialized};
-      if(rev) doc._rev = rev;
+      if(rev)
+        doc._rev = rev;
       $.ajax({
         type: 'POST',
         url: this.db,
         data: JSON.stringify(doc),
         contentType: 'application/json',
-        success: function(data) {cb()},
+        success: function(data) {
+          cb()
+        },
         error: function(data) {
           $.get(that.db + '/' + encodedURI, function(data) {
             var oldDoc = JSON.parse(data);
@@ -344,13 +373,14 @@ var createThingStore = function(db, userInfo) {
       return this.parseData(JSON.parse(doc));
     },
     // Create thing from JSON data ex database
-    parseData: function(doc){
+    parseData: function(doc) {
       var thingData = [];
       var functions = doc.thing.functions;
       delete doc.thing.functions;
       for(var prop in doc.thing) {
         var value = doc.thing[prop];
-        if(functions.indexOf(prop) > -1) eval('value = ' + value);
+        if(functions.indexOf(prop) > -1)
+          eval('value = ' + value);
         thingData.push([prop, value]);
       }
       var prototype = this.lookup(doc.thing.prototype);
@@ -372,14 +402,14 @@ var createThingStore = function(db, userInfo) {
       arrayForEachLinear(things, function(each, cb) {
         that.saveThingToCouch(each, cb)
       }, function() {
-      
+
       });
     },
     encodeURI: function(uri) {
-    
+
     }
   };
-  
+
   thingStore.userInfo(userInfo);
-  return thingStore;  
+  return thingStore;
 }
