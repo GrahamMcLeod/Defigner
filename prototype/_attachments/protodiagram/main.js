@@ -33,8 +33,10 @@ var fetchGraph = function (startURI, nodes, links, options) {
         uri: node.uri,
       };
       if(options) {
-        tempNode.x = options.x-50;
-        tempNode.y = options.y-50;
+        if(options.x && options.y) {
+          tempNode.x = options.x-50;
+          tempNode.y = options.y-50;
+        }
       }
       var pos = nodes.push(tempNode)-1;
       added = true;
@@ -57,25 +59,15 @@ var fetchGraph = function (startURI, nodes, links, options) {
         var tempLink = {source: sourcePosInfo.idx, target:targetPosInfo.idx, value:1, relName: rel.property(label)};
         links.push(tempLink);
       }
+      if(options) {
+        if(options.levels) {
+          if(options.levels > -1) {
+            var newOptions = {levels: options.levels-1};
+            fetchGraph(each, nodes, links, newOptions);
+          }
+        }
+      }
     });
   });
 };
 
-// Convert logical view to HTML table structure
-var viewToHTML = function (view) {
-  //return '<table>'+view+'</table>';
-  // alert (JSON.stringify(view));
-  var joinedList = view.properties.map ( function (each) {
-    if(typeof each.value == 'object') {
-      var list=each.value.map ( function (e) {
-        return e.label
-      }).join(', ');
-      each.value=list;
-      return each;
-    } else {
-      return each;
-    }
-  })
-  view.properties=joinedList;
-  return  ich.outForm(view,true);
-}

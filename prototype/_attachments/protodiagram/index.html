@@ -1,17 +1,17 @@
 <html>
   <head>
-    <title>Force-Directed Layout</title>
+    <title>Prototype</title>
     
     <script type="text/javascript" src="../protovis-d3.2.js"></script>
      <script src="../jquery.min.js"></script>
      <script src="../jquery-ui.custom.min.js"></script>
-     <script src="../jquery.tools.min.js"></script>
      <script src="../myutils.js"></script>
      <script src="../ICanHaz.min.js" ></script>
      <script src="../thingstore.js"></script>
      <script src="../dictionary.js"></script>
      <script src="main.js"></script>
-     <link rel="stylesheet" href="../css/ui-lightness/jquery-ui.custom.css"/>
+     <script src="ui.js"></script>
+     <link rel="stylesheet" href="../css/smoothness/jquery-ui.custom.css"/>
     <style type="text/css">
 
 body {
@@ -21,27 +21,71 @@ body {
     </style>
   </head>
   <body>
-     <script id="outForm" type="text/html">      
+  <script id="outForm" type="text/html">      
 {{#properties}}
 {{label}}: {{value}}
 {{/properties}}   
-    </script>
+  </script>
+  <div id="tabs">
+  <ul>
+    <li><a href="#tab-details">Details</a></li>
+    <li><a href="#tab-table">Spreadsheet</a></li>
+    <li><a href="#tab-graph">Graph</a></li>
+  </ul>
+  <div id="tab-details">
+    <table>
+      <tr>
+        <td id="thing-list">
+          <script id="prototypeListTemplate" type="text/html">
+            <ul>
+            {{#things}}
+              <li class="thing prototype" uri="{{uri}}">{{label}}</li>
+            {{/things}}
+            </table>
+          </script>     
+          <script id="instanceListTemplate" type="text/html">
+            <ul>
+            {{#things}}
+              <li class="thing instance" uri="{{uri}}">{{label}}</li>
+            {{/things}}
+            </table>
+          </script>
+          <div id="prototype-list"></div>
+          <div id="instance-list"></div>    
+        </td>
+        <td>
+          <script id="thingDetailsTemplate" type="text/html">
+            <table>
+            {{#properties}}
+              <tr>
+                <td>{{label}}: </td><td>{{value}}</td>
+              </tr>
+            {{/properties}} 
+            </table>
+          </script>
+          <div id="thing-details"></div>
+        </td>
+      </tr>
+    </table>  
+  </div>
+  <div id="tab-table">
+    <p>Morbi tincidunt, dui sit amet facilisis feugiat, odio metus gravida ante, ut pharetra massa metus id nunc. Duis scelerisque molestie turpis. Sed fringilla, massa eget luctus malesuada, metus eros molestie lectus, ut tempus eros massa ut dolor. Aenean aliquet fringilla sem. Suspendisse sed ligula in ligula suscipit aliquam. Praesent in eros vestibulum mi adipiscing adipiscing. Morbi facilisis. Curabitur ornare consequat nunc. Aenean vel metus. Ut posuere viverra nulla. Aliquam erat volutpat. Pellentesque convallis. Maecenas feugiat, tellus pellentesque pretium posuere, felis lorem euismod felis, eu ornare leo nisi vel felis. Mauris consectetur tortor et purus.</p>
+  </div>
+  <div id="tab-graph">
   <script type="text/javascript+protovis">
-  // Setup user information 
-
   // Initialise Panel
-  // Render graph of retrieved objects on browser
-  var renderGraph=function (startItem, tempNodes, tempLinks, update) {
-    fetchGraph(startItem, tempNodes, tempLinks);
+  // Render graph of retrieved objects on tab
+  var renderGraph = function(startItem, tempNodes, tempLinks, options) {
+    fetchGraph(startItem, tempNodes, tempLinks, options);
     var items = {
       nodes: tempNodes,
       links: tempLinks   
     };
-    var nodeScale = Math.max(2, ((w * h) / items.nodes.length) * 0.02);
     var w = document.body.clientWidth;
     var h = document.body.clientHeight;
     var colors = pv.Colors.category19();
     var vis = new pv.Panel()
+      .canvas('tab-graph')
       .width(w)
       .height(h)
       .fillStyle("white")
@@ -53,7 +97,7 @@ body {
       .links(items.links)
       .dragConstant(0.04)
       //.springLength(Math.max(15, Math.pow(nodeScale, 0.75)));
-      .springLength(150)
+      .springLength(180)
       .chargeConstant(-10)
       .springConstant(0.15);
     
@@ -70,8 +114,10 @@ body {
         .textBaseline("middle");
            
     force.node.add(pv.Bar)
-      .width(90)
+      .width(100)
       .height(20)
+      .left(function(d) d.x-50)
+      .bottom(function(d) d.y-10)
       .fillStyle(function(d)  {
         var nodeColour = colors(d.group);
         if (d.thing.isAPrototype) {
@@ -99,9 +145,9 @@ body {
         .text(function(d) {return d.nodeName});
       vis.render();
   }
-  // Initialise collections and set initial start item, then fetch data and render
-  var startItem = 'uri:thing/person/graham';
-  renderGraph (startItem, [], []);
+
   </script>
+  </div>
+  </div>
   </body>
 </html>
