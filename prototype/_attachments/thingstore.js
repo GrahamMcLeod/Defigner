@@ -41,7 +41,8 @@ var createThingStore = function(db, userInfo) {
       var properties = [];
       var that = this;
       this.properties().forEach( function(prop) {
-        properties.push({label: prop.label(), value: that.propertyLabel(prop), uri: prop.uri});
+        var valueInfo = that.propertyLabel(prop);
+        properties.push({label: prop.label(), value: valueInfo.value, inherited: valueInfo.inherited, uri: prop.uri});
       });
       return {name: this.name, uri: this.uri, properties: properties};
     },
@@ -124,19 +125,32 @@ var createThingStore = function(db, userInfo) {
     },
     propertyLabel: function(prop) {
       var that = this;
-      var value = that.property(prop)
+      var inherited = true;
+      if(this.hasOwnProperty(prop)) {
+        inherited = false;
+      }
+      var value = that.property(prop);
+      console.log(value);
       if(prop.hasParent('uri:thing/property/collection')) {
         if(!prop.property('range').hasParent('uri:thing/literal')) {
           var value = value.map( function(each) {
-            return {label: each.label(), uri: each.uri}
+            var label = each.label();
+            //if(inherited) label = '[' + label + ']';
+            return {label: label, uri: each.uri}
           });
         }
       } else {
         if(!prop.property('range').hasParent('uri:thing/literal')) {
-          value = {label: value.label(), uri: value.uri}
+          var label = each.label();
+            //if(inherited) label = '[' + label + ']';
+          value = {label: label, uri: value.uri}
+        } else {
+          /*if(inherited) {
+            value = '[' +  value + ']';
+          }*/
         }
       }
-      return value;
+      return {value: value, inherited: inherited};
     },
     propertyAppend: function(name, value) {
       var currentProperty = this.property(name, value);
@@ -216,7 +230,11 @@ var createThingStore = function(db, userInfo) {
                       if(!inversePropertyValue)
                         inversePropertyValue = [];
                       if(inversePropertyValue.indexOf(that.uri) == -1) {
-                        inversePropertyValue.push(that.uri);
+                        if(each.hasOwnProperty(inverse)) {
+                          inversePropertyValue.push(that.uri);
+                        } else {
+                          inversePropertyValue = [that.uri];
+                        }
                         each[inverse] = inversePropertyValue;
                         each.store();
                       }
@@ -301,7 +319,8 @@ var createThingStore = function(db, userInfo) {
       $.ajax({
         type: 'GET',
         async: true,
-        url: this.db + '/_design/prototype/_view/instances?include_docs=true&key=' + JSON.stringify(parent.uri),
+        url: this.db + '/_design/prototype/_view/instances?include_docs=true&startkey='
+        + JSON.stringify(parent.uri) + '&endkey="' + parent.uri +'0"',
         success: function(jsonData) {
           var data = JSON.parse(jsonData);
           var prototypeList = data.rows.map( function (each) {
@@ -409,7 +428,8 @@ var createThingStore = function(db, userInfo) {
 
     }
   };
-
+  var label = thingStore.lookup('uri:thing/property/label');
+  thing.property(label, 'Thing');
   thingStore.userInfo(userInfo);
   return thingStore;
 }

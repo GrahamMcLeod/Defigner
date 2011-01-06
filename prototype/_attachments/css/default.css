@@ -1,5 +1,38 @@
 
+table tr td {
+  vertical-align: top;
+}
+
 #tab-graph {
   margin:0,
   width: 90%
+}
+
+#thing-browser tr td {
+  width: 250px;
+}
+
+#thing-browser thead {
+  font-weight: bold;
+}
+
+#table tr td {
+  padding-left: 10px;
+  padding-right: 10px;
+  margin: 0;
+}
+#table thead {
+  font-weigth: bold;
+  background-color: grey;
+}
+#table .prototype {
+  background-color: lightgrey;
+}
+
+.thing {
+  display: inline;
+}
+
+.inherited {
+  opacity: 0.5;
 }

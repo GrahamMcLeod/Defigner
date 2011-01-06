@@ -48,9 +48,55 @@ var loadInstanceList = function(parent, cb) {
     cb({label: parent.label(), uri: parent.uri, things: formattedList});
   })
 }
+var formatValue = function(value, inherited) {
+  if(value.constructor == Array) {
+    value = '<div class="thing">' + value.map( function(each) {
+      return each.label
+    }).join('</div><div class="thing">') + '</div>';
+  } else {
+    if(value.constructor == Object) {
+      return '<div class="thing">' + value.label + '</div>';
+    }
+  }
+  if(inherited) {
+    return '<span class="inherited">[' + value + ']</span>';
+  } else {
+    return value;    
+  }
+}
+var loadTableData = function(parent, cb) {
+  thingStore.instances(parent, function(instances) {
+    var parentProps = parent.properties();
+    var headings = parentProps.map( function(each) {
+      return each.label();
+    });
+    var prototypeRow = parentProps.map( function(prop) {
+      var valueInfo = parent.propertyLabel(prop);
+      return formatValue(valueInfo.value, valueInfo.inherited);
+    });
+    var instanceRows = instances.map( function(instance) {
+      var cells = parentProps.map( function(prop) {
+        var valueInfo = instance.propertyLabel(prop);
+        var value = valueInfo.value;
+        var inherited = valueInfo.inherited;
+        return formatValue(value, inherited);
+      });
+      return {uri: instance.uri, cells: cells};
+    });
+    cb({headings: headings, prototypeRow: {uri: parent.uri, cells: prototypeRow}, instanceRows: instanceRows});
+  });
+}
+var displayTableData = function(parent) {
+  loadTableData(parent, function(data) {
+    var html = ich.tableTemplate(data);
+    $('#table').html(html);
+  })
+}
 var displayPrototypeList = function(parent, domElement, cb) {
   prototypeListHtml(parent, function(html) {
     $(domElement).html(html);
+    addPrototypeEvents();
+    addThingEvents();
     cb();
   })
 }
@@ -58,6 +104,7 @@ var displayInstanceList = function(prototype, domElement, cb) {
   loadInstanceList(prototype, function(data) {
     var html = ich.instanceListTemplate(data);
     $('#instance-list').html(html);
+    addThingEvents();
   })
 }
 var displayThingDetails = function(thing) {
@@ -85,30 +132,48 @@ var viewToHTML = function (view) {
   formatView(view);
   return ich.outForm(view,true);
 }
-var addThingInteraction = function() {
+var addPrototypeEvents = function() {
   $(".prototype").bind('click', function() {
     var thing = thingStore.lookup($(this).attr('uri'));
     displayInstanceList(thing, '#instance-list', function() {
-      
+
     })
   })
 }
+var addThingEvents = function() {
+  $(".thing").bind('click', function() {
+    var thing = thingStore.lookup($(this).attr('uri'));
+    displayThingDetails(thing);
+  })
+}
+var addTableEvents = function() {
+  $('#prototype-list-table .prototype').bind('click', function() {
+    var thing = thingStore.lookup($(this).attr('uri'));
+    displayTableData(thing);
+  });
+}
 $( function() {
   var focusItem = dict('thing');
+  var furniture = thingStore.lookup('uri:thing/furniture');
+  var table = thingStore.lookup('uri:thing/furniture/table');
   displayPrototypeList(focusItem, '#prototype-list', function() {
     $("#prototype-list").treeview();
-    addThingInteraction();
   });
   $("#tabs").tabs({selected: 0}).bind('tabsshow', function(event, ui) {
     if(ui.index == 0) {
       displayPrototypeList(focusItem, '#prototype-list', function() {
         $("#prototype-list").treeview();
-        addThingInteraction();
       });
+    }
+    if(ui.index == 1) {
+      displayPrototypeList(focusItem, '#prototype-list-table', function() {
+        $("#prototype-list-table").treeview();
+        addTableEvents();
+      });
+      displayTableData(focusItem);
     }
     if(ui.index == 2) {
       // Initialise collections and set initial start item, then fetch data and render
-      var startItem = 'uri:thing/person/graham';
       renderGraph ('uri:thing/person/graham', [], [], {levels: 0});
     }
   });

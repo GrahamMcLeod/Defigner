@@ -173,7 +173,7 @@ var runExamples = function(dict) {
   ]);  
   
   person.property(personOwnsFurniture, []);
-  person.property(knows, []);
+  person.property(knows, [person]);
 
   var graham = person.make([
     ['name', 'graham'],

@@ -61,7 +61,7 @@ var fetchGraph = function (startURI, nodes, links, options) {
       }
       if(options) {
         if(options.levels) {
-          if(options.levels > -1) {
+          if(options.levels > 0) {
             var newOptions = {levels: options.levels-1};
             fetchGraph(each, nodes, links, newOptions);
           }
