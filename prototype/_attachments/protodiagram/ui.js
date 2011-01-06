@@ -1,4 +1,26 @@
 var label = dict('label');
+var thing = dict('thing');
+var focus = {
+  currType: thing,
+  currItem: thing,
+  currRepresentation: undefined,
+  currModel: undefined,
+  currUIView: 'thing-browser',
+  type: function(type) {
+    if(type) {
+      this.currType = type
+    } else {
+      return this.currType;
+    }
+  },
+  item: function(item) {
+    if(item) {
+      this.currItem = item
+    } else {
+      return this.currItem;
+    }
+  }
+};
 
 var loadPrototypeList = function(parent, cb) {
   thingStore.prototypes(parent, function(prototypeList) {
@@ -61,7 +83,7 @@ var formatValue = function(value, inherited) {
   if(inherited) {
     return '<span class="inherited">[' + value + ']</span>';
   } else {
-    return value;    
+    return value;
   }
 }
 var loadTableData = function(parent, cb) {
@@ -135,6 +157,7 @@ var viewToHTML = function (view) {
 var addPrototypeEvents = function() {
   $(".prototype").bind('click', function() {
     var thing = thingStore.lookup($(this).attr('uri'));
+    focus.type(thing);
     displayInstanceList(thing, '#instance-list', function() {
 
     })
@@ -145,13 +168,16 @@ var addThingEvents = function() {
     var thing = thingStore.lookup($(this).attr('uri'));
     displayThingDetails(thing);
   })
-}
+};
 var addTableEvents = function() {
   $('#prototype-list-table .prototype').bind('click', function() {
     var thing = thingStore.lookup($(this).attr('uri'));
+    focus.type(thing);
+    $('.focus-type').removeClass('focus-type');
+    $(this).addClass('focus-type');
     displayTableData(thing);
   });
-}
+};
 $( function() {
   var focusItem = dict('thing');
   var furniture = thingStore.lookup('uri:thing/furniture');

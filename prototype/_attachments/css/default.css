@@ -36,3 +36,11 @@ table tr td {
 .inherited {
   opacity: 0.5;
 }
+
+.prototype-list {
+  width: 200px;
+}
+
+.focus-type {
+  background-color: yellow;
+}
