@@ -23,35 +23,41 @@ var loadPrototypeListRecursive = function(parent, cb) {
     });
   })
 }
+var prototypeListHtml = function(parent, cb) {
+  loadPrototypeListRecursive(parent, function(data) {
+    var parseData = function(input) {
+      var html = '<ul>'
+      html += input.map( function(each) {
+        var innerHtml = '<li><span class="thing prototype" uri="' + each.prototype.uri + '">' + each.prototype.label() + '</span>';
+        if(each.subprototypes.length > 0) {
+          innerHtml += parseData(each.subprototypes);
+        }
+        return innerHtml + '</li>';
+      }).join('\n');
+      html += '</ul>';
+      return html;
+    }
+    cb(parseData(data));
+  })
+}
 var loadInstanceList = function(parent, cb) {
   thingStore.instances(parent, function(prototypeList) {
     formattedList = prototypeList.map( function(each) {
       return {uri: each.uri, label: each.property(label)}
     });
-    cb(formattedList);
+    cb({label: parent.label(), uri: parent.uri, things: formattedList});
   })
 }
-var loadThingList = function(parent, cb) {
-  loadPrototypeList(parent, function(prototypeList) {
-    loadInstanceList(parent, function(instanceList) {
-      var templateData = {
-        label: parent.label(),
-        uri: parent.uri,
-        prototypes: prototypeList,
-        instances: instanceList
-      };
-      var html = ich.thingListTemplate(templateData);
-      cb(html);
-    })
-  })
-}
-var displayThingList = function(parent, domElement, cb) {
-  loadThingList(parent, function(html) {
+var displayPrototypeList = function(parent, domElement, cb) {
+  prototypeListHtml(parent, function(html) {
     $(domElement).html(html);
-    addThingInteraction();
-    if(cb) {
-      cb();
-    }
+    cb();
+  })
+}
+var displayInstanceList = function(prototype, domElement, cb) {
+  loadInstanceList(prototype, function(data) {
+    var html = ich.instanceListTemplate(data);
+    $('#instance-list').html(html);
   })
 }
 var displayThingDetails = function(thing) {
@@ -80,29 +86,24 @@ var viewToHTML = function (view) {
   return ich.outForm(view,true);
 }
 var addThingInteraction = function() {
-  $(".tree-prototype").bind('click', function() {
+  $(".prototype").bind('click', function() {
     var thing = thingStore.lookup($(this).attr('uri'));
-    var domElement = $(this);
-    loadThingList(thing, function(html) {
-      domElement.removeClass('tree-prototype');
-      domElement.unbind();
-      var newSubList = $(domElement).html(html);
-      $(domElement).treeview({
-        add: newSubList
-      });
-      addThingInteraction();
+    displayInstanceList(thing, '#instance-list', function() {
+      
     })
   })
 }
 $( function() {
   var focusItem = dict('thing');
-  displayThingList(focusItem, '#thing-list', function() {
-    $("#thing-list").treeview();
+  displayPrototypeList(focusItem, '#prototype-list', function() {
+    $("#prototype-list").treeview();
+    addThingInteraction();
   });
   $("#tabs").tabs({selected: 0}).bind('tabsshow', function(event, ui) {
     if(ui.index == 0) {
-      displayThingList(focusItem, '#thing-list', function() {
-        $("#thing-list").treeview();
+      displayPrototypeList(focusItem, '#prototype-list', function() {
+        $("#prototype-list").treeview();
+        addThingInteraction();
       });
     }
     if(ui.index == 2) {
@@ -111,5 +112,5 @@ $( function() {
       renderGraph ('uri:thing/person/graham', [], [], {levels: 0});
     }
   });
-  $("#thing-list").html();
+  $("#prototype-list").html();
 });

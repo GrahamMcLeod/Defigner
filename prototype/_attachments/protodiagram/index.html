@@ -38,22 +38,18 @@ body {
     <table>
       <tr>
         <td>
-          <script id="thingListTemplate" type="text/html">
-            <ul>
-              <li class="" uri="{{uri}}">
+          <script id="instanceListTemplate" type="text/html">
                 <span class="thing parent" uri="{{uri}}">{{label}}</span>
                 <ul>
-                  {{#prototypes}}
-                  <li class="tree-prototype" uri="{{uri}}"><span href="#" class="thing prototype" uri="{{uri}}">{{label}}</span></li>
-                  {{/prototypes}}
-                  {{#instances}}
+                  {{#things}}
                   <li><span class="thing instance" uri="{{uri}}">{{label}}</span></li>
-                  {{/instances}}
+                  {{/things}}
                 </ul>
-              </li>
-            </ul>
           </script>
-          <div id="thing-list"></div>   
+          <div id="prototype-list"></div>  
+        </td>
+        <td>
+          <div id="instance-list"></div>
         </td>
         <td>
           <script id="thingDetailsTemplate" type="text/html">
@@ -65,6 +61,7 @@ body {
             {{/properties}} 
             </table>
           </script>
+          
           <div id="thing-details"></div>
         </td>
       </tr>

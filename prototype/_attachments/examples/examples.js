@@ -86,6 +86,16 @@ var runExamples = function(dict) {
     [label, 'House']
   ]);
   
+  var smallHouse = house.make([
+    ['name', 'small_house'],
+    [label, 'Small House']
+  ]);
+  
+  var bigHouse = house.make([
+    ['name', 'big_house'],
+    [label, 'Big House']
+  ]);
+  
   //defining a relationship between House and Furniture
   var houseHasFurniture = collection.make([
     ['name', 'house_has'],
@@ -97,12 +107,18 @@ var runExamples = function(dict) {
   //adding that relationship to the House prototype
   house.property(houseHasFurniture, [furniture]);
   
-  var myHouse = house.make([
+  var myHouse = smallHouse.make([
     ['name', 'myHouse'],
     [label, 'My House'],
     [houseHasFurniture, [table]]
   ]);
   
+  var myHouse = bigHouse.make([
+    ['name', 'a_big_house'],
+    [label, 'A Big House'],
+    [houseHasFurniture, [table]]
+  ]);  
+
   var grahamsHouse = house.make([
     ['name', 'grahams_house'],
     [label, 'Grahams House'],
