@@ -31,21 +31,27 @@ body {
   </script>
   <div id="tabs">
   <ul>
-    <li><a href="#tab-details">Details</a></li>
+    <li><a href="#tab-browser">Browser</a></li>
     <li><a href="#tab-table">Spreadsheet</a></li>
     <li><a href="#tab-graph">Graph</a></li>
   </ul>
-  <div id="tab-details">
-    <table id="thing-browser">
+  <div id="tab-browser">
+    <table id="thing-browser" class="layout-table">
       <thead>
       <tr>
         <td>Types</td>
-        <td>Instances</td>
+        <td>Items</td>
         <td>Detail</td>
       </tr>        
       </thead>
       <tr>
         <td>
+          <div id="prototype-list" class="prototype-list">
+            <!-- Here appears the Type Tree -->
+          </div>
+        </td>
+        <td>
+          <div id="instance-list">
           <script id="instanceListTemplate" type="text/html">
                 <span class="thing parent" uri="{{uri}}">{{label}}</span>
                 <ul>
@@ -54,10 +60,7 @@ body {
                   {{/things}}
                 </ul>
           </script>
-          <div id="prototype-list" class="prototype-list"></div>  
-        </td>
-        <td>
-          <div id="instance-list"></div>
+          </div>
         </td>
         <td>
           <script id="thingDetailsTemplate" type="text/html">
@@ -100,7 +103,13 @@ body {
         {{/instanceRows}}
       </table>
     </script>
-    <table>
+    <table class="layout-table">
+      <thead>
+      <tr>
+        <td>Types</td>
+        <td></td>
+      </tr>        
+      </thead>
       <tr>
         <td><div id="prototype-list-table" class="prototype-list"></td>
         <td><div id="table"></div></td>
@@ -108,6 +117,18 @@ body {
     </table> 
   </div>
   <div id="tab-graph">
+    <table class="layout-table">
+      <thead>
+      <tr>
+        <td></td>
+        <td></td>
+      </tr>
+      </thead>
+      <tr>
+        <td></td>
+        <td><div id="graph"></div></td>
+      </tr>
+    </table>
   <script type="text/javascript+protovis">
   // Initialise Panel
   // Render graph of retrieved objects on tab
@@ -121,7 +142,7 @@ body {
     var h = document.body.clientHeight;
     var colors = pv.Colors.category19();
     var vis = new pv.Panel()
-      .canvas('tab-graph')
+      .canvas('graph')
       .width(w)
       .height(h)
       .fillStyle("white")
@@ -152,8 +173,8 @@ body {
     force.node.add(pv.Bar)
       .width(100)
       .height(20)
-      .left(function(d) d.x-50)
-      .bottom(function(d) d.y-10)
+      .left(function(d) {return d.x-50})
+      .bottom(function(d) {return d.y-10})
       .fillStyle(function(d)  {
         var nodeColour = colors(d.group);
         if (d.thing.isAPrototype) {

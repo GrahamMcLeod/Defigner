@@ -130,7 +130,6 @@ var createThingStore = function(db, userInfo) {
         inherited = false;
       }
       var value = that.property(prop);
-      console.log(value);
       if(prop.hasParent('uri:thing/property/collection')) {
         if(!prop.property('range').hasParent('uri:thing/literal')) {
           var value = value.map( function(each) {

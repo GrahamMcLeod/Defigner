@@ -12,7 +12,7 @@ table tr td {
   width: 250px;
 }
 
-#thing-browser thead {
+.layout-table thead, #table {
   font-weight: bold;
 }
 
@@ -23,6 +23,7 @@ table tr td {
 }
 #table thead {
   font-weigth: bold;
+  color: white;
   background-color: grey;
 }
 #table .prototype {
