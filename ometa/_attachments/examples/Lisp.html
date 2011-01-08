@@ -1,0 +1,34 @@
+// Inspired by McCarthy's meta-circular lisp
+
+ometa Lisp {
+  ev     = string:a                                         -> self.env[a]
+         | [#lambda :fs :body]                              -> [#lambda, fs, body]
+         | [#quote  :ans]                                   -> ans
+         | [#cond   evCond:ans]                             -> ans
+         | [ev:f    ev*:xs]     app(f, xs):ans              -> ans,
+
+  evCond = condF* condT:ans anything*                       -> x,
+  condT  = [ev:x ?x ev:ans]                                 -> ans,
+  condF  = ~condT anything,
+
+  app    = #car                [[:hd anything*]]            -> hd
+         | #cdr                [[:hd anything*:tl]]         -> tl
+         | #cons               [:hd :tl]                    -> [hd].concat(tl)
+         | #atom               [:x]                         -> (!(x instanceof Array))
+         | #eq                 [:x :y]                      -> (x == y)
+         | [#lambda :fs :body] :args
+             enter bind(fs, args) ev(body):ans leave        -> ans,
+  enter  =                                                  -> (self.env = self.env.delegated({_p: self.env})),
+  bind   = []                []
+         | [:f anything*:fs] [:a anything*:as] bind(fs, as) -> (self.env[f] = a),
+  leave  =                                                  -> (self.env = self.env._p)
+}
+Lisp.initialize = function() { this.env = {car: "car", cdr: "cdr", cons: "cons", atom: "atom", eq: "eq", nil: null, T: "T"} }
+lispEval = function(x) { return Lisp.match(x, "ev") }
+
+lispEval([`quote, [1, 2, 3]])
+lispEval([`car, [`quote, [1, 2, 3]]])
+lispEval([`cdr, [`quote, [1, 2, 3]]])
+lispEval([`cons, [`quote, `x], [`quote, `y]])
+lispEval([`eq, [`quote, `x], [`quote, `x]])
+lispEval([[`lambda, [`x], [`cons, `x, `x]], [`quote, `boo]])
