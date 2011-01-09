@@ -1,4 +1,4 @@
-var createThingStore = function(db, userInfo) {
+var createThingStore = function(db, userInfo, bootstrap) {
   var thing = {
     name: 'thing',
     uri: 'uri:thing',
@@ -141,12 +141,12 @@ var createThingStore = function(db, userInfo) {
       } else {
         if(!prop.property('range').hasParent('uri:thing/literal')) {
           var label = each.label();
-            //if(inherited) label = '[' + label + ']';
+          //if(inherited) label = '[' + label + ']';
           value = {label: label, uri: value.uri}
         } else {
           /*if(inherited) {
-            value = '[' +  value + ']';
-          }*/
+           value = '[' +  value + ']';
+           }*/
         }
       }
       return {value: value, inherited: inherited};
@@ -427,8 +427,10 @@ var createThingStore = function(db, userInfo) {
 
     }
   };
-  var label = thingStore.lookup('uri:thing/property/label');
-  thing.property(label, 'Thing');
+  if(!bootstrap) {
+    var label = thingStore.lookup('uri:thing/property/label');
+    thing.property(label, 'Thing');
+  }
   thingStore.userInfo(userInfo);
   return thingStore;
 }

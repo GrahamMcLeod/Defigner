@@ -13,7 +13,7 @@ $(function() {
       thing.property(ofType, [systemThing]);
     }
   };
-  thingStore = createThingStore('prototype', userInfo);
+  thingStore = createThingStore('prototype', userInfo, true);
   
   bootstrap(thingStore);
   thingStore.commit();

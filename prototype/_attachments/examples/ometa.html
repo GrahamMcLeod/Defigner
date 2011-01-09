@@ -1,0 +1,57 @@
+<html>
+  <head>
+    <script src="../jquery.min.js">
+    </script>
+    <script src="/_utils/script/jquery.couch.js">
+    </script>
+    <script src="../myutils.js">
+    </script>
+    <script src="../thingstore.js">
+    </script>
+    <script src="../dictionary.js">
+    </script>
+    <script src="ometa-main.js">
+    </script>
+    <script src="../ometa/lib.js">
+    </script>
+    <script src="../ometa/ometa-base.js">
+    </script>
+    <script src="../ometa/parser.js">
+    </script>
+    <script src="../ometa/modeling.js">
+    </script>
+  </head>
+  <body>
+       <script language="modeling">
+  description(Property)
+    domain: Thing
+    range: String
+  
+  Person
+    owns: Furniture
+    knows: Person
+    description: 'sometext'
+    someNumber: 8
+    
+  Mirko(Person)
+    owns: Chair(Furniture)
+    knows: Graham(Person)
+  
+  Graham(Person)
+    owns: Table(Furniture)
+    
+  employs(Property)
+    domain: Company(Organization)
+    range: Person
+  
+  Company
+    employs: Person
+
+  Microsoft(Company)
+    employs: SteveBallmer(Person)
+  
+    </script>
+    <div id="source"></div>
+    <div id="translation"></div>
+  </body>
+</html>
