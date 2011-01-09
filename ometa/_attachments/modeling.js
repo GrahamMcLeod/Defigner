@@ -1,35 +1,32 @@
-ometa ModelParser <: Parser {
-  eval = thingDef*:x -> x,
-  thingDef = thingHead:head  '\n' thingBody:body '\n'* -> {label: head.name, type: head.type, properties: body},
-  thingHead = thingName:name spaces '(' thingName:type ')' -> {type: type, name: name} |
-              thingName:name -> {type: 'Thing', name: name} |
-              propertyTypeName:name spaces '(' thingName:type ')' -> {type: type, name: name},
-  thingName = spaces firstAndRest(`upper, `letterOrDigit):name -> name.join(''),
-  propertyTypeName = spaces letterOrDigit*:name -> name.join(''),
-  thingBody = propertyDef*:props -> props,
-  propertyDef = propertyName:prop spaces ":" spaces propertyValue:value '\n' -> {propName: prop, propValue: value},
-  propertyName = spaces firstAndRest(`lower, `letterOrDigit):name -> name.join(''),
-  propertyValue = variableValue:x -> x |
-                  stringValue:x -> x |
-                  numberValue:x -> x,
-  variableValue = thingHead:x -> {type: 'thing', value: x},
-  stringValue = "'" valueChar*:x "'" -> {type: 'string', value: x.join('')},
-  valueChar = letterOrDigit:x -> x |
-              space:x -> x,
-  numberValue = digit*:x -> {type: 'number', value: parseFloat(x.join(''))}
-}
+ModelParser=objectThatDelegatesTo(Parser,{
+"eval":function(){var $elf=this,_fromIdx=this.input.idx,x;return (function(){x=this._many((function(){return this._apply("thingDef")}));return x}).call(this)},
+"thingDef":function(){var $elf=this,_fromIdx=this.input.idx,head,body;return (function(){head=this._apply("thingHead");this._applyWithArgs("exactly","\n");body=this._apply("thingBody");this._many((function(){return this._applyWithArgs("exactly","\n")}));return ({"label": head["name"],"type": head["type"],"properties": body})}).call(this)},
+"thingHead":function(){var $elf=this,_fromIdx=this.input.idx,name,type,name,name,type;return this._or((function(){return (function(){name=this._apply("thingName");this._apply("spaces");this._applyWithArgs("exactly","(");type=this._apply("thingName");this._applyWithArgs("exactly",")");return ({"type": type,"name": name})}).call(this)}),(function(){return (function(){name=this._apply("thingName");return ({"type": "Thing","name": name})}).call(this)}),(function(){return (function(){name=this._apply("propertyTypeName");this._apply("spaces");this._applyWithArgs("exactly","(");type=this._apply("thingName");this._applyWithArgs("exactly",")");return ({"type": type,"name": name})}).call(this)}))},
+"thingName":function(){var $elf=this,_fromIdx=this.input.idx,name;return (function(){this._apply("spaces");name=this._applyWithArgs("firstAndRest","upper","letterOrDigit");return name.join("")}).call(this)},
+"propertyTypeName":function(){var $elf=this,_fromIdx=this.input.idx,name;return (function(){this._apply("spaces");name=this._many((function(){return this._apply("letterOrDigit")}));return name.join("")}).call(this)},
+"thingBody":function(){var $elf=this,_fromIdx=this.input.idx,props;return (function(){props=this._many((function(){return this._apply("propertyDef")}));return props}).call(this)},
+"propertyDef":function(){var $elf=this,_fromIdx=this.input.idx,prop,value;return (function(){prop=this._apply("propertyName");this._apply("spaces");this._applyWithArgs("token",":");this._apply("spaces");value=this._apply("propertyValue");this._applyWithArgs("exactly","\n");return ({"propName": prop,"propValue": value})}).call(this)},
+"propertyName":function(){var $elf=this,_fromIdx=this.input.idx,name;return (function(){this._apply("spaces");name=this._applyWithArgs("firstAndRest","lower","letterOrDigit");return name.join("")}).call(this)},
+"propertyValue":function(){var $elf=this,_fromIdx=this.input.idx,x,x,x;return this._or((function(){return (function(){x=this._apply("variableValue");return x}).call(this)}),(function(){return (function(){x=this._apply("stringValue");return x}).call(this)}),(function(){return (function(){x=this._apply("numberValue");return x}).call(this)}))},
+"variableValue":function(){var $elf=this,_fromIdx=this.input.idx,x;return (function(){x=this._apply("thingHead");return ({"type": "thing","value": x})}).call(this)},
+"stringValue":function(){var $elf=this,_fromIdx=this.input.idx,x;return (function(){this._applyWithArgs("token","\'");x=this._many((function(){return this._apply("valueChar")}));this._applyWithArgs("token","\'");return ({"type": "string","value": x.join("")})}).call(this)},
+"valueChar":function(){var $elf=this,_fromIdx=this.input.idx,x,x;return this._or((function(){return (function(){x=this._apply("letterOrDigit");return x}).call(this)}),(function(){return (function(){x=this._apply("space");return x}).call(this)}))},
+"numberValue":function(){var $elf=this,_fromIdx=this.input.idx,x;return (function(){x=this._many((function(){return this._apply("digit")}));return ({"type": "number","value": parseFloat(x.join(""))})}).call(this)}})
 
 var ModelTranslator = function() {
-  var translate = function(data) {
+  var translateIntermediate = function(data) {
     var code = 'var Thing = thingStore.lookup("uri:thing");\n';
     code += 'var label = thingStore.lookup("uri:thing/property/label");\n';
     code += 'var Relationship = thingStore.lookup("uri:thing/property/collection/relationship");\n';
-    var thingsInScope = ['Thing'];
+    var thingsInScope = ['Thing', 'label', 'Relationship'];
     code += data.map(function(thingData) {
       var label = thingData.label;
       var type = thingData.type;
       var thingCode = '';
       var relTargetsToCreate = [];
+      if(thingsInScope.indexOf(type) == -1) {
+        relTargetsToCreate.push(type);
+      }
       var properties = thingData.properties.map(function(prop) {
         if(prop.propValue.type == 'thing') {
           var propValue = prop.propValue.value.name;
@@ -47,6 +44,7 @@ var ModelTranslator = function() {
         return '  [' + propertyName + ',' + propValue + ']'
       });
       thingCode += relTargetsToCreate.map(function(each) {
+        thingsInScope.push(each.name);
         return each.type + '.make("' + each.name + '");'
       }).join('\n') + '\n';
       if(thingsInScope.indexOf(label) > -1) {
@@ -60,35 +58,18 @@ var ModelTranslator = function() {
     }).join('\n');
     return code;
   };
-  return {translate: translate}
+  var getIntermediate = function(modelCode) {
+    return ModelParser.matchAll(modelCode, 'eval');
+  }
+  var translate = function(modelCode) {
+    return this.translateIntermediate(this.getIntermediate(modelCode))
+  }
+  return {translate: translate, getIntermediate: getIntermediate, translateIntermediate: translateIntermediate}
 }
 
-var testAdvanced = "
-
-  Company
-  
-  Person
-    owns: Furniture
-    knows: Person
-    description: 'sometext'
-    someNumber: 8
-    
-  Mirko(Person)
-    owns: Chair
-    knows: Graham(Person)
-  
-  Graham(Person)
-    owns: Table
-    
-  employs(Relationship)
-    domain: Company
-    range: Person
-    inverse: 'employed by'
-  
-  Company
-    employs: Person
-
-";
-var parsedModel = ModelParser.matchAll(testAdvanced, 'eval');
-console.log(parsedModel);
-ModelTranslator().translate(parsedModel);
+/*
+$(function() {
+  var code = ModelTranslator().translate($('script[language="modeling"]').text());
+  console.log(code);
+})
+*/
