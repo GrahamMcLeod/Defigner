@@ -67,10 +67,10 @@ var ModelTranslator = function() {
     return code;
   };
   var getIntermediate = function(modelCode) {
-    return ModelParser.matchAll(testAdvanced, 'eval');
+    return ModelParser.matchAll(modelCode, 'eval');
   }
   var translate = function(modelCode) {
-    return this.translateIntermediate(this.getIntermediate())
+    return this.translateIntermediate(this.getIntermediate(modelCode))
   }
   return {translate: translate, getIntermediate: getIntermediate, translateIntermediate: translateIntermediate}
 }
