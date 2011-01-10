@@ -42,9 +42,16 @@ var createThingStore = function(db, userInfo, bootstrap) {
       var that = this;
       this.properties().forEach( function(prop) {
         var valueInfo = that.propertyLabel(prop);
-        properties.push({label: prop.label(), value: valueInfo.value, inherited: valueInfo.inherited, uri: prop.uri});
+        var isLiteral = prop.property('range').hasParent('uri:thing/literal');
+        properties.push({
+          label: prop.label(),
+          value: valueInfo.value,
+          literal: isLiteral,
+          inherited: valueInfo.inherited,
+          uri: prop.uri
+        });
       });
-      return {name: this.name, uri: this.uri, properties: properties};
+      return {label: this.name, uri: this.uri, properties: properties};
     },
     myText: function () {
       var tempText='';
@@ -130,23 +137,19 @@ var createThingStore = function(db, userInfo, bootstrap) {
         inherited = false;
       }
       var value = that.property(prop);
-      if(prop.hasParent('uri:thing/property/collection')) {
+      if(value.constructor == Array) {
         if(!prop.property('range').hasParent('uri:thing/literal')) {
-          var value = value.map( function(each) {
+          value = value.map( function(each) {
             var label = each.label();
-            //if(inherited) label = '[' + label + ']';
             return {label: label, uri: each.uri}
           });
+        } else {
+          value = value.map(function(each) {return each});
         }
       } else {
         if(!prop.property('range').hasParent('uri:thing/literal')) {
           var label = value.label();
-          //if(inherited) label = '[' + label + ']';
           value = {label: label, uri: value.uri}
-        } else {
-          /*if(inherited) {
-           value = '[' +  value + ']';
-           }*/
         }
       }
       return {value: value, inherited: inherited};

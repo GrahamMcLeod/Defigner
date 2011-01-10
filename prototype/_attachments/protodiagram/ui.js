@@ -167,35 +167,43 @@ var displayThingDetails = function(thing) {
   var view = formatView(thing.view());
   var html = ich.thingDetailsTemplate(view);
   $('#thing-details').html(html);
+  addThingEvents();
   $('#itemEditButton').bind('click', function() {
     var html = ich.thingDetailsEditTemplate(view);
     $('#thing-details').html(html);
   })
 };
 var formatView = function(view) {
-  var joinedList = view.properties.map ( function (each) {
+  var viewData = {
+    label: view.label,
+    uri: view.uri,
+    literalProps: [],
+    literalListProps: [],
+    thingProps: [],
+    thingListProps: []
+  };
+  view.properties.forEach( function(each) {
     if(each.value.constructor == Array) {
-      var list=each.value.map ( function (e) {
-        if(typeof e == 'object') {
-          return e.label;  
-        } else {
-          return e;
+      if(each.literal) {
+        for(var i=0; i<each.value.length-1; i++) {
+          each.value[i] = each.value[i] + ', ';
         }
-        
-      }).join(', ');
-      each.value=list;
-      return each;
-    } else {
-      if(typeof each.value == 'object') {
-        each.value = each.label;
-        return each;
+        viewData.literalListProps.push(each);
       } else {
-        return each;  
+        for(var i=0; i<each.value.length-1; i++) {
+          each.value[i].label = each.value[i].label + ', ';
+        }
+        viewData.thingListProps.push(each);
+      }
+    } else {
+      if(each.literal) {
+        viewData.literalProps.push(each);
+      } else {
+        viewData.thingProps.push(each);
       }
     }
   });
-  view.properties=joinedList;
-  return view;
+  return viewData;
 }
 // Convert logical view to HTML table structure
 var viewToHTML = function (view) {
@@ -239,3 +247,18 @@ $( function() {
   });
   $("#prototype-list").html();
 });
+/*
+ var data = [
+ {label: 'name', value: 'Furniture'},
+ {label: 'age', value: 8}
+ ];
+
+ renderForm({
+ data: data,
+ domElement: '#form-tag',
+ onSubmit: function(newData) {
+ //update thing
+
+ }
+ });
+ */

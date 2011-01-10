@@ -32,6 +32,12 @@ table tr td {
 
 .thing {
   display: inline;
+  color: #1f3287;
+  cursor: pointer;
+}
+
+.thing:hover {
+  text-decoration: underline;
 }
 
 .inherited {

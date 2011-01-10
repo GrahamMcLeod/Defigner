@@ -23,6 +23,12 @@ var runExamples = function(dict) {
     [label, 'colour'],
     ['range', string]
   ]);
+
+  var colours = collection.make([
+    ['name', 'colours'],
+    [label, 'colours'],
+    ['range', string]
+  ]);
   
   var legs = property.make([
     ['name', 'legs'],
@@ -43,13 +49,13 @@ var runExamples = function(dict) {
     ['name', 'furniture'],
     [label, 'Furniture'],
     [createdAt, 1900],
-    [colour, '']
+    [colours, []]
   ]);
   
   var table = furniture.make([
     ['name', 'table'],
     [label, 'Table'],
-    [colour, 'brown'],
+    [colours, ['brown']],
     [legs, 4],
     [height, 100]
   ]);
@@ -71,14 +77,14 @@ var runExamples = function(dict) {
   var chair = furniture.make([
     ['name', 'chair'],
     [label, 'Chair'],
-    [colour, 'green'],
+    [colours, ['green', 'brown']],
     [legs, 4]
   ]);
   
   var board = furniture.make([
     ['name', 'board'],
     [label, 'Board'],
-    [colour, 'brown']
+    [colours, ['brown', 'yellow', 'blue']]
   ]);
   
   var house = thing.make([
@@ -157,35 +163,20 @@ var runExamples = function(dict) {
     ['name', 'known_by'],
     [label, 'known by'],
     ['inverse', knows]
-  ]);
+  ]); 
   
-  var personOwnsFurniture = relationship.make([
-    ['name', 'person_owns_furniture'],
-    [label, 'owns'],
-    ['domain', person],
-    ['range', furniture]
-  ]);
-
-  var furnitureOwnedByPerson = relationship.make([
-    ['name', 'furniture_owned_by_person'],
-    [label, 'owned by'],
-    ['inverse', personOwnsFurniture]
-  ]);  
-  
-  person.property(personOwnsFurniture, []);
   person.property(knows, [person]);
 
   var graham = person.make([
     ['name', 'graham'],
     [label, 'Graham'],
-    [personOwns, [grahamsHouse]],
-    [personOwnsFurniture, [bigTable]]
+    [personOwns, [grahamsHouse, bigTable]]
   ]);
   
   var mirko = person.make([
     ['name', 'mirko'],
     [label, 'Mirko'],
-    [personOwns, [myHouse]],
+    [personOwns, [myHouse, smallTable]],
     [knows, [graham]]
   ]);
 //$('#log').append ('<br>Data written to couch');
