@@ -64,6 +64,7 @@ body {
         </td>
         <td>
           <script id="thingDetailsTemplate" type="text/html">
+            <button id="itemEditButton">Edit</button>
             <table>
             {{#properties}}
               <tr>
@@ -72,6 +73,20 @@ body {
             {{/properties}} 
             </table>
           </script>
+           <script id="thingDetailsEditTemplate" type="text/html">
+      <form>
+        <table>
+        {{#properties}}
+          <tr>
+            <td>{{label}}: </td><td><input type="text" name="{{label}}"  value="{{value}}"/></td>
+          </tr>
+        {{/properties}} 
+        <tr>   
+        <td></td><td><input type="submit" value="Submit" /></td>
+        </tr>
+       </table> 
+      </form>
+    </script>
           <div id="thing-details"></div>
         </td>
       </tr>
