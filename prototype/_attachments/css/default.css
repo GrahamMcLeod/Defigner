@@ -51,3 +51,7 @@ table tr td {
 .focus-type {
   background-color: yellow;
 }
+
+input {
+  width: 250px;
+}

@@ -1,5 +1,6 @@
 var label = dict('label');
 var thing = dict('thing');
+var literal = dict('literal');
 var focus = {
   currType: thing,
   currItem: thing,
@@ -21,7 +22,6 @@ var focus = {
     }
   }
 };
-
 var typeSelector = function(options) {
   var selector = options.selector;
   var rootType = options.rootType;
@@ -169,10 +169,98 @@ var displayThingDetails = function(thing) {
   $('#thing-details').html(html);
   addThingEvents();
   $('#itemEditButton').bind('click', function() {
-    var html = ich.thingDetailsEditTemplate(view);
-    $('#thing-details').html(html);
-  })
+    displayThingDetailsEdit(thing);
+  });
 };
+var displayThingDetailsEdit = function(thing) {
+  var view = formatView(thing.view());
+  var editedProperties = {};
+  var propertyValueChanged = function(propType, value) {
+    editedProperties[propType] = value;
+  }
+  var propertyValueAdded = function(propType, value) {
+    if(!editedProperties[propType])
+      editedProperties[propType] = [];
+    if(editedProperties[propType].filter(function(each) {return each.uri == value.uri}).length == 0)
+      editedProperties[propType].push(value);
+  }
+  var html = ich.thingDetailsEditTemplate(view);
+  $('#thing-details').html(html);
+  var split = function (val) {
+    return val.split( /,\s*/ );
+  }
+  var extractLast = function (term) {
+    return split(term).pop();
+  }
+  $('input[class="select-things"]').each( function() {
+    var focus = this;
+    var propType = thingStore.lookup($(this).attr('prop-uri'));
+    thingStore.instances(propType.property('range'), function(instances) {
+      var data = instances.map( function(each) {
+        return {label: each.label(), uri: each.uri}
+      });
+      $(focus).autocomplete({
+        minLength: 0,
+        source: function( request, response ) {
+          response($.ui.autocomplete.filter(data, extractLast(request.term)));
+        },
+        focus: function() {
+          return false;
+        },
+        select: function( event, ui ) {
+          var terms = split( this.value );
+          terms.pop();
+          terms.push( ui.item.value );
+          terms.push( "" );
+          this.value = terms.join( ", " );
+          propertyValueAdded(propType, ui.item);
+          return false;
+        }
+      });
+    });
+  });
+  $('#itemCancelButton').bind('click', function() {
+    displayThingDetails(thing);
+  });
+  $('#itemSaveButton').bind('click', function() {
+    var newView = {uri: view.uri, properties: []};
+    view.properties.forEach( function(prop) {
+      var propType = thingStore.lookup(prop.uri);
+      var domValue = $('input[prop-uri="' + prop.uri + '"]').val();
+      if(propType.property('range').hasParent(literal)) {
+        if(prop.value != domValue) {
+          prop.value = domValue
+          newView.properties.push(prop);
+        }
+      } else {
+        if(editedProperties[prop.uri]) {
+          var newPropValue = editedProperties[prop.uri];
+          prop.value.forEach( function(each) {
+            if((domValue.indexOf(each.label) > -1) && (newPropValue.filter(function(newVal) {return newVal.uri == each.uri}) == 0)) {
+              newPropValue.push(each);
+            }
+          });
+          prop.value = newPropValue;
+          newView.properties.push(prop);
+        }
+      }
+    });
+    var thingProps = newView.properties.map( function(each) {
+      var propType = thingStore.lookup(each.uri);
+      if(each.literalProps) {
+        return [propType, each.value];
+      }
+      if(each.thingListProps) {
+        return [propType, each.value.map( function(value) {
+          return thingStore.lookup(value.uri)
+        })];
+      }
+    })
+    thing.extend(thingProps);
+    //thingStore.commit();
+    displayThingDetails(thing);
+  });
+}
 var formatView = function(view) {
   var viewData = {
     label: view.label,

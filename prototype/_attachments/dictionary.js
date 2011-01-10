@@ -3,6 +3,7 @@ var createDictionary = function(thingStore) {
   var dictData = {
     'thing': 'uri:thing',
     'property': 'uri:thing/property',
+    'literal': 'uri:thing/literal',
     'string': 'uri:thing/literal/string',
     'number': 'uri:thing/literal/number',
     'date': 'uri:thing/literal/date',

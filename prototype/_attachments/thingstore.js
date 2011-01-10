@@ -129,6 +129,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
           thing.property(each[0], each[1]);
         }
       });
+      thingStore.save(this);
     },
     propertyLabel: function(prop) {
       var that = this;

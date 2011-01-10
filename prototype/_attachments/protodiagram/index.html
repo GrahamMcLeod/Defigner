@@ -94,9 +94,8 @@ body {
             </table>
           </script>
           <script id="thingDetailsEditTemplate" type="text/html">
+            <button id="itemSaveButton">Save</button>&nbsp<button id="itemCancelButton">Cancel</button>
             <form>
-            <button id="itemEditButton">Edit</button>
-            
             <table>
             {{#properties}}
               <tr>
@@ -109,10 +108,10 @@ body {
                   <input type="text" name="{{label}}" prop-uri="{{uri}}" value="{{#value}}{{.}}{{/value}}" />
                 {{/literalListProps}}
                 {{#thingProps}}
-                  <textarea rows=1 cols=30 name="{{label}}" prop-uri="{{uri}}" uri="{{#value}}{{uri}}{{/value}}">{{#value}}{{label}}{{/value}}</textarea>               
+                  <input name="{{label}}" class="select-thing" prop-uri="{{uri}}" uri="{{#value}}{{uri}}{{/value}}" value="{{#value}}{{label}}{{/value}}"/>               
                 {{/thingProps}}
                 {{#thingListProps}}
-                  <textarea rows=1 cols=30 name="{{label}}" prop-uri="{{uri}}">{{#value}}{{label}}{{/value}}</textarea>
+                  <input name="{{label}}" class="select-things" prop-uri="{{uri}}" value="{{#value}}{{label}}{{/value}}"/>
                 {{/thingListProps}}
                 </td>
               </tr>
