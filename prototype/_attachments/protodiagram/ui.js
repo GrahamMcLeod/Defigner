@@ -176,33 +176,34 @@ var displayThingDetails = function(thing) {
 var formatView = function(view) {
   var viewData = {
     label: view.label,
-    uri: view.uri,
-    literalProps: [],
-    literalListProps: [],
-    thingProps: [],
-    thingListProps: []
+    uri: view.uri
   };
-  view.properties.forEach( function(each) {
+  var properties = view.properties.map( function(each) {
     if(each.value.constructor == Array) {
       if(each.literal) {
         for(var i=0; i<each.value.length-1; i++) {
           each.value[i] = each.value[i] + ', ';
         }
-        viewData.literalListProps.push(each);
+        each.literalListProps = true;
+        return each;
       } else {
         for(var i=0; i<each.value.length-1; i++) {
           each.value[i].label = each.value[i].label + ', ';
         }
-        viewData.thingListProps.push(each);
+        each.thingListProps = true;
+        return each;
       }
     } else {
       if(each.literal) {
-        viewData.literalProps.push(each);
+        each.literalProps = true;
+        return each;
       } else {
-        viewData.thingProps.push(each);
+        each.thingProps = true;
+        return each;
       }
     }
   });
+  viewData.properties = properties;
   return viewData;
 }
 // Convert logical view to HTML table structure
