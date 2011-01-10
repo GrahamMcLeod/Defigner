@@ -170,14 +170,24 @@ var displayThingDetails = function(thing) {
 }
 var formatView = function(view) {
   var joinedList = view.properties.map ( function (each) {
-    if(typeof each.value == 'object') {
+    if(each.value.constructor == Array) {
       var list=each.value.map ( function (e) {
-        return e.label
+        if(typeof e == 'object') {
+          return e.label;  
+        } else {
+          return e;
+        }
+        
       }).join(', ');
       each.value=list;
       return each;
     } else {
-      return each;
+      if(typeof each.value == 'object') {
+        each.value = each.label;
+        return each;
+      } else {
+        return each;  
+      }
     }
   });
   view.properties=joinedList;

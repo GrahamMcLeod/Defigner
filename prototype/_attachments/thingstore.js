@@ -140,7 +140,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
         }
       } else {
         if(!prop.property('range').hasParent('uri:thing/literal')) {
-          var label = each.label();
+          var label = value.label();
           //if(inherited) label = '[' + label + ']';
           value = {label: label, uri: value.uri}
         } else {
