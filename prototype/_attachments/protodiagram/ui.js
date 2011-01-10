@@ -167,7 +167,11 @@ var displayThingDetails = function(thing) {
   var view = formatView(thing.view());
   var html = ich.thingDetailsTemplate(view);
   $('#thing-details').html(html);
-}
+  $('#itemEditButton').bind('click', function() {
+    var html = ich.thingDetailsEditTemplate(view);
+    $('#thing-details').html(html);
+  })
+};
 var formatView = function(view) {
   var joinedList = view.properties.map ( function (each) {
     if(each.value.constructor == Array) {
@@ -204,6 +208,7 @@ var addThingEvents = function() {
     displayThingDetails(thing);
   })
 };
+// Main Logic
 $( function() {
   var focusItem = dict('thing');
   focus.type(focusItem);
