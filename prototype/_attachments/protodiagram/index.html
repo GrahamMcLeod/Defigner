@@ -67,90 +67,56 @@ body {
             <button id="itemEditButton">Edit</button>
             <table>
             {{#properties}}
-            {{#literalProps}}
               <tr>
                 <td>{{label}}: </td>
-                <td>{{value}}</td>
-              </tr>
-            {{/literalProps}}
-            {{#literalListProps}}
-              <tr>
                 <td>
-                  {{label}}:
-                </td>
-                <td>
+                {{#literalProps}}
+                  {{value}}
+                {{/literalProps}}
+                {{#literalListProps}}
                   {{#value}}
                      {{.}}
                   {{/value}}
-                </td>
-              </tr>
-            {{/literalListProps}} 
-            {{#thingProps}}
-              <tr>
-                <td>
-                  {{label}}:
-                </td>
-                <td>
+                {{/literalListProps}}
+                {{#thingProps}}
                   {{#value}}
                      <div class="thing" uri="{{uri}}">{{label}}</div>
-                  {{/value}}
-                </td>
-              </tr>
-            {{/thingProps}} 
-            {{#thingListProps}}
-              <tr>
-                <td>
-                  {{label}}:
-                </td>
-                <td>
+                  {{/value}}                
+                {{/thingProps}}
+                {{#thingListProps}}
                   {{#value}}
                      <div class="thing" uri="{{uri}}">{{label}}</div> 
-                  {{/value}}
+                  {{/value}}                
+                {{/thingListProps}}
                 </td>
               </tr>
-            {{/thingListProps}}
             {{/properties}} 
             </table>
           </script>
           <script id="thingDetailsEditTemplate" type="text/html">
             <form>
             <button id="itemEditButton">Edit</button>
+            
             <table>
-            {{#literalProps}}
+            {{#properties}}
               <tr>
-                <td>{{label}}: </td><td><input type="text" name="{{label}}" prop-uri="{{uri}}" value="{{value}}" /></td>
-              </tr>
-            {{/literalProps}}
-            {{#literalListProps}}
-              <tr>
+                <td>{{label}}: </td>
                 <td>
-                  {{label}}:
-                </td>
-                <td>
+                {{#literalProps}}
+                  <input type="text" name="{{label}}" prop-uri="{{uri}}" value="{{value}}" />
+                {{/literalProps}}
+                {{#literalListProps}}
                   <input type="text" name="{{label}}" prop-uri="{{uri}}" value="{{#value}}{{.}}{{/value}}" />
-                </td>
-              </tr>
-            {{/literalListProps}} 
-            {{#thingProps}}
-              <tr>
-                <td>
-                  {{label}}:
-                </td>
-                <td>
-                  <textarea rows=1 cols=30 name="{{label}}" prop-uri="{{uri}}" uri="{{#value}}{{uri}}{{/value}}">{{#value}}{{label}}{{/value}}</textarea>
-                </td>
-              </tr>
-            {{/thingProps}}
-            {{#thingListProps}}
-              <tr>
-                <td>
-                  {{label}}:
-                </td>
-                <td>
+                {{/literalListProps}}
+                {{#thingProps}}
+                  <textarea rows=1 cols=30 name="{{label}}" prop-uri="{{uri}}" uri="{{#value}}{{uri}}{{/value}}">{{#value}}{{label}}{{/value}}</textarea>               
+                {{/thingProps}}
+                {{#thingListProps}}
                   <textarea rows=1 cols=30 name="{{label}}" prop-uri="{{uri}}">{{#value}}{{label}}{{/value}}</textarea>
+                {{/thingListProps}}
                 </td>
               </tr>
-            {{/thingListProps}} 
+            {{/properties}} 
             </table>
             </form>
           </script>
