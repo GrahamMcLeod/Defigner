@@ -39,9 +39,9 @@ body {
     <table id="thing-browser" class="layout-table">
       <thead>
       <tr>
-        <td>Types</td>
-        <td>Items</td>
-        <td>Detail</td>
+        <td id="types-head">Types</td>
+        <td id="items-head">Items</td>
+        <td id="detail-head">Detail</td>
       </tr>        
       </thead>
       <tr>
@@ -68,25 +68,25 @@ body {
             <table>
             {{#properties}}
               <tr>
-                <td>{{label}}: </td>
+                <td class="property">{{label}}: </td>
                 <td>
                 {{#literalProps}}
                   {{value}}
                 {{/literalProps}}
                 {{#literalListProps}}
                   {{#value}}
-                     {{.}}
+                     {{.}}<br>
                   {{/value}}
                 {{/literalListProps}}
                 {{#thingProps}}
                   {{#value}}
                      <div class="thing" uri="{{uri}}">{{label}}</div>
-                  {{/value}}                
+                  {{/value}}
                 {{/thingProps}}
                 {{#thingListProps}}
                   {{#value}}
-                     <div class="thing" uri="{{uri}}">{{label}}</div> 
-                  {{/value}}                
+                     <div class="thing" uri="{{uri}}">{{label}}</div><br/>
+                  {{/value}}
                 {{/thingListProps}}
                 </td>
               </tr>
@@ -99,19 +99,33 @@ body {
             <table>
             {{#properties}}
               <tr>
-                <td>{{label}}: </td>
+                <td class="property">{{label}}: </td>
                 <td>
                 {{#literalProps}}
                   <input type="text" name="{{label}}" prop-uri="{{uri}}" value="{{value}}" />
                 {{/literalProps}}
                 {{#literalListProps}}
-                  <input type="text" name="{{label}}" prop-uri="{{uri}}" value="{{#value}}{{.}}{{/value}}" />
+                  <div prop-uri="{{uri}}">
+                  {{#value}}
+                  <div><input class="literal" value="{{.}}" /><span class="remove-button" onClick="$(this).parent().remove()">-</span><br/></div>
+                  {{/value}}
+                  <div><input name="{{label}}" prop-uri="{{uri}}" onFocus="addRemovableEditField(this, 'literal')"/><span class="remove-button invisible" onClick="$(this).parent().remove()">-</span></div>
+                  </div>
                 {{/literalListProps}}
                 {{#thingProps}}
-                  <input name="{{label}}" class="select-thing" prop-uri="{{uri}}" uri="{{#value}}{{uri}}{{/value}}" value="{{#value}}{{label}}{{/value}}"/>               
+                  <div prop-uri="{{uri}}">
+                  {{#value}}
+                  <div><div class="thing" uri="{{uri}}">{{label}}</div>&nbsp;<span class="remove-button" onClick="$(this).parent().remove()">-</span><br/></div>
+                  {{/value}}
+                  </div>
                 {{/thingProps}}
                 {{#thingListProps}}
-                  <input name="{{label}}" class="select-things" prop-uri="{{uri}}" value="{{#value}}{{label}}{{/value}}"/>
+                  <div prop-uri="{{uri}}">
+                  {{#value}}
+                  <div><div class="thing" uri="{{uri}}">{{label}}</div>&nbsp;<span class="remove-button" onClick="$(this).parent().remove()">-</span><br/></div>
+                  {{/value}}
+                  <input name="{{label}}" class="select-thing" prop-uri="{{uri}}"/>
+                  </div>
                 {{/thingListProps}}
                 </td>
               </tr>

@@ -9,7 +9,7 @@ table tr td {
 }
 
 #thing-browser tr td {
-  width: 250px;
+  padding-left:20px;
 }
 
 .layout-table thead, #table {
@@ -30,12 +30,17 @@ table tr td {
   background-color: lightgrey;
 }
 
+#detail-head {
+  width: 300px;
+}
 .thing {
   display: inline;
   color: #1f3287;
   cursor: pointer;
 }
-
+.property {
+  padding-right: 20px;
+}
 .thing:hover {
   text-decoration: underline;
 }
@@ -53,5 +58,11 @@ table tr td {
 }
 
 input {
-  width: 250px;
+  width: 200px;
+}
+.invisible {
+  display: none;
+}
+.remove-button {
+  margin-left: 10px;
 }

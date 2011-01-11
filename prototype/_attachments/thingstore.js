@@ -249,6 +249,8 @@ var createThingStore = function(db, userInfo, bootstrap) {
                     }
                   }
                 }
+              } else {
+                throw new Error('invalid range');
               }
             }
           } else {
