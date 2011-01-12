@@ -194,7 +194,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
             if(propRange.hasParent('uri:thing/literal')) {
               if(isCollection) {
                 value.forEach( function(each) {
-                  if(!range.validateProperty(each))
+                  if(!propRange.validateProperty(each))
                     validRange = false;
                 })
               } else {
@@ -325,7 +325,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
         type: 'GET',
         async: true,
         url: this.db + '/_design/prototype/_view/instances?include_docs=true&startkey='
-        + JSON.stringify(parent.uri) + '&endkey="' + parent.uri +'0"',
+        + JSON.stringify(parent.uri + '/') + '&endkey="' + parent.uri +'0"',
         success: function(jsonData) {
           var data = JSON.parse(jsonData);
           var prototypeList = data.rows.map( function (each) {

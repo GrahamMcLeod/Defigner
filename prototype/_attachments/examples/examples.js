@@ -39,6 +39,33 @@ var runExamples = function(dict) {
     [range, number]
   ]);
   
+  var lookupValue = thing.make([
+    ['name', 'lookup'],
+    [label, 'Lookup Value']
+  ])
+  
+  var personHeightValue = lookupValue.make([
+    ['name', 'person-height-value'],
+    [label, 'Person Height']
+  ]);
+  
+  var shortPerson = personHeightValue.make([
+    ['name', 'short'],
+    [label, 'short']
+  ]);
+  
+  var tallPerson = personHeightValue.make([
+    ['name', 'tall'],
+    [label, 'tall']
+  ]);
+
+  var personHeight = property.make([
+    ['name', 'personheight'], 
+    [label, 'height'], 
+    [description, 'height in centimeters'],
+    [range, personHeightValue]
+  ]);
+  
   var height = property.make([
     ['name', 'height'], 
     [label, 'height'], 
@@ -138,7 +165,8 @@ var runExamples = function(dict) {
   
   var person = thing.make([
     ['name', 'person'],
-    [label, 'Person']
+    [label, 'Person'],
+    [personHeight, personHeightValue]
   ]);
   
   var personOwns = relationship.make([
