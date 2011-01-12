@@ -1,5 +1,5 @@
 function(doc) {
-  if (!doc.thing.isAPrototype) {
+//  if (!doc.thing.isAPrototype) {
     var valid = true;
     var types = doc.thing['uri:thing/property/collection/of_type'];
     if(types) {
@@ -10,5 +10,5 @@ function(doc) {
     if(valid) {
       emit(doc.thing.prototype, doc.thing.uri);    
     }
-  }
+//  }
 };

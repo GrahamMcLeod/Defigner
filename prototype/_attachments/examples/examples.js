@@ -10,38 +10,40 @@ var runExamples = function(dict) {
   var description = dict('description');
   var collection = dict('collection');
   var relationship = dict('relationship');
+  var range = dict('range');
+  var domain = dict('domain');
   
 //defining some properties to use:  
   var createdAt = property.make([
     ['name', 'created_at'],
     [label, 'created At'],
-    ['range', dict('date')]
+    [range, dict('date')]
   ]);
   
   var colour = property.make([
     ['name', 'colour'],
     [label, 'colour'],
-    ['range', string]
+    [range, string]
   ]);
 
   var colours = collection.make([
     ['name', 'colours'],
     [label, 'colours'],
-    ['range', string]
+    [range, string]
   ]);
   
   var legs = property.make([
     ['name', 'legs'],
     [label, 'Legs'],
     [description, 'number of legs'],
-    ['range', number]
+    [range, number]
   ]);
   
   var height = property.make([
     ['name', 'height'], 
     [label, 'height'], 
     [description, 'height in centimeters'],
-    ['range', number]
+    [range, number]
   ]);
   
   //defining some things holding the properties:
@@ -106,8 +108,8 @@ var runExamples = function(dict) {
   var houseHasFurniture = collection.make([
     ['name', 'house_has'],
     [label, 'has'],
-    ['domain', house],
-    ['range', furniture]
+    [domain, house],
+    [range, furniture]
   ]);
   
   //adding that relationship to the House prototype
@@ -142,8 +144,8 @@ var runExamples = function(dict) {
   var personOwns = relationship.make([
     ['name', 'person_owns'],
     [label, 'owns'],
-    ['domain', person],
-    ['range', thing]
+    [domain, person],
+    [range, thing]
   ]);
   
   var ownedByPerson = relationship.make([
@@ -155,8 +157,8 @@ var runExamples = function(dict) {
   var knows = relationship.make([
     ['name', 'knows'],
     [label, 'knows'],
-    ['domain', person],
-    ['range', person]
+    [domain, person],
+    [range, person]
   ]);
   
   var knownBy = relationship.make([

@@ -10,7 +10,7 @@ $(function() {
       this.addUserInfo(thing);
       var ofType = thingStore.lookup('uri:thing/property/collection/of_type');
       var systemThing = thingStore.lookup('uri:thing/system_thing');
-      thing.property(ofType, [systemThing]);
+      thing.property(ofType.uri, [systemThing.uri]);
     }
   };
   thingStore = createThingStore('prototype', userInfo, true);

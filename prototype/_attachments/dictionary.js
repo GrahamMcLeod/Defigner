@@ -7,6 +7,8 @@ var createDictionary = function(thingStore) {
     'string': 'uri:thing/literal/string',
     'number': 'uri:thing/literal/number',
     'date': 'uri:thing/literal/date',
+    'range': 'uri:thing/property/range',
+    'domain': 'uri:thing/property/domain',
     'label': 'uri:thing/property/label',
     'description': 'uri:thing/property/description',
     'collection': 'uri:thing/property/collection',

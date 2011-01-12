@@ -42,7 +42,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
       var that = this;
       this.properties().forEach( function(prop) {
         var valueInfo = that.propertyLabel(prop);
-        var isLiteral = prop.property('range').hasParent('uri:thing/literal');
+        var isLiteral = prop.property(range).hasParent('uri:thing/literal');
         properties.push({
           label: prop.label(),
           value: valueInfo.value,
@@ -138,19 +138,19 @@ var createThingStore = function(db, userInfo, bootstrap) {
         inherited = false;
       }
       var value = that.property(prop);
-      if(value.constructor == Array) {
-        if(!prop.property('range').hasParent('uri:thing/literal')) {
-          value = value.map( function(each) {
-            var label = each.label();
-            return {label: label, uri: each.uri}
-          });
+      if(prop.isAThing) {
+        if(value.constructor == Array) {
+          if(!prop.property(range).hasParent('uri:thing/literal')) {
+            value = value.map( function(each) {
+              var label = each.label();
+              return {label: label, uri: each.uri}
+            });
+          }
         } else {
-          value = value.map(function(each) {return each});
-        }
-      } else {
-        if(!prop.property('range').hasParent('uri:thing/literal')) {
-          var label = value.label();
-          value = {label: label, uri: value.uri}
+          if(!prop.property(range).hasParent('uri:thing/literal')) {
+            var label = value.label();
+            value = {label: label, uri: value.uri}
+          }
         }
       }
       return {value: value, inherited: inherited};
@@ -166,11 +166,11 @@ var createThingStore = function(db, userInfo, bootstrap) {
         var value = this[name];
         if(!value)
           return value;
-        if((['range', 'domain', 'prototype', 'inverse'].indexOf(name) > -1) && value)
-          value = thingStore.lookup(value);
+        if((['prototype', 'inverse', range].indexOf(name) > -1) && (value != undefined))
+          return thingStore.lookup(value);
         if(name.isAThing) {
-          var isCollection = name.property('collection');
-          if(! name.property('range').hasParent('uri:thing/literal')) {
+          if(! name.property(range).hasParent('uri:thing/literal')) {
+            var isCollection = name.property('collection');
             if(isCollection) {
               value = value.map( function(each) {
                 return thingStore.lookup(each)
@@ -186,19 +186,19 @@ var createThingStore = function(db, userInfo, bootstrap) {
           return
         };
         if(name.isAThing) {
-          var domain = name.property('domain');
-          var range = name.property('range');
+          var propDomain = name.property(domain);
+          var propRange = name.property(range);
           var isCollection = name.property('collection');
           var validRange = true;
-          if(this.hasParent(domain)) {
-            if(range.hasParent('uri:thing/literal')) {
+          if(this.hasParent(propDomain)) {
+            if(propRange.hasParent('uri:thing/literal')) {
               if(isCollection) {
                 value.forEach( function(each) {
                   if(!range.validateProperty(each))
                     validRange = false;
                 })
               } else {
-                if(!range.validateProperty(value))
+                if(!propRange.validateProperty(value))
                   validRange = false;
               }
               if(validRange) {
@@ -207,11 +207,11 @@ var createThingStore = function(db, userInfo, bootstrap) {
             } else {
               if(isCollection) {
                 value.forEach( function(each) {
-                  if(!each.hasParent(range))
+                  if(!each.hasParent(propRange))
                     validRange = false;
                 });
               } else {
-                if(!value.hasParent(range))
+                if(!value.hasParent(propRange))
                   validRange = false;
               }
               if(validRange) {
@@ -435,6 +435,8 @@ var createThingStore = function(db, userInfo, bootstrap) {
   };
   if(!bootstrap) {
     var label = thingStore.lookup('uri:thing/property/label');
+    var range = thingStore.lookup('uri:thing/property/range');
+    var domain = thingStore.lookup('uri:thing/property/domain');
     thing.property(label, 'Thing');
   }
   thingStore.userInfo(userInfo);
