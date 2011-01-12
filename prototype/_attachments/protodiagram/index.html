@@ -68,7 +68,7 @@ body {
             <table>
             {{#properties}}
               <tr>
-                <td class="property">{{label}}: </td>
+                <td class="property thing" uri="{{uri}}">{{label}}: </td>
                 <td>
                 {{#literalProps}}
                   {{value}}
@@ -99,7 +99,7 @@ body {
             <table>
             {{#properties}}
               <tr>
-                <td class="property">{{label}}: </td>
+                <td class="property" uri="{{uri}}">{{label}}: </td>
                 <td>
                 {{#literalProps}}
                   <input type="text" name="{{label}}" prop-uri="{{uri}}" value="{{value}}" />
@@ -115,8 +115,9 @@ body {
                 {{#thingProps}}
                   <div prop-uri="{{uri}}">
                   {{#value}}
-                  <div><div class="thing" uri="{{uri}}">{{label}}</div>&nbsp;<span class="remove-button" onClick="$(this).parent().remove()">-</span><br/></div>
+                  <div><div class="thing" uri="{{uri}}">{{label}}</div>&nbsp;<span class="remove-button" onClick="$(this).parent().addClass('invisible').parent().find('input').removeClass('invisible'); ">-</span><br/></div>
                   {{/value}}
+                  <input name="{{label}}" class="select-single-thing invisible" prop-uri="{{uri}}"/>
                   </div>
                 {{/thingProps}}
                 {{#thingListProps}}
@@ -124,7 +125,7 @@ body {
                   {{#value}}
                   <div><div class="thing" uri="{{uri}}">{{label}}</div>&nbsp;<span class="remove-button" onClick="$(this).parent().remove()">-</span><br/></div>
                   {{/value}}
-                  <input name="{{label}}" class="select-thing" prop-uri="{{uri}}"/>
+                  <input name="{{label}}" class="select-thing-list" prop-uri="{{uri}}"/>
                   </div>
                 {{/thingListProps}}
                 </td>

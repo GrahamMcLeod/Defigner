@@ -2,6 +2,8 @@ var label = dict('label');
 var thing = dict('thing');
 var literal = dict('literal');
 var number = dict('number');
+var range = dict('range');
+var domain = dict('domain');
 var focus = {
   currType: thing,
   currItem: thing,
@@ -176,50 +178,26 @@ var displayThingDetails = function(thing) {
 var displayThingDetailsEdit = function(thing) {
   var view = formatView(thing.view());
   var html = ich.thingDetailsEditTemplate(view);
-  var split = function ( val ) {
-    return val.split( /,\s*/ );
-  }
-  var extractLast= function ( term ) {
-    return split( term ).pop();
-  }
+
   $('#thing-details').html(html);
-  $('input[class="select-thing"]').each( function() {
-    var focus = $(this);
-    var propType = thingStore.lookup($(this).attr('prop-uri'));
-    thingStore.instances(propType.property('range'), function(instances) {
-      var data = instances.map( function(each) {
-        return {label: each.label(), uri: each.uri}
-      });
-      $(focus).each( function() {
-        var inputfield = $(this);
-        inputfield.autocomplete({
-          minLength: 0,
-          source: function( request, response ) {
-            response($.ui.autocomplete.filter(data, extractLast(request.term)));
-          },
-          focus: function() {
-            return false;
-          },
-          select: function( event, ui ) {
-            inputfield.before('<div><div class="thing" uri="' + ui.item.uri + '">' + ui.item.value + '</div>&nbsp;<span onClick="$(this).parent().remove()">-</span><br></div>');
-            this.value = '';
-            return false;
-          }
-        })
-      });
-    });
+
+  thingListInputField({
+    domElement: 'input[class*="select-thing-list"]'
   });
+  thingSingleInputField({
+    domElement: 'input[class*="select-single-thing"]'
+  });
+
   $('#itemCancelButton').bind('click', function() {
     displayThingDetails(thing);
   });
   $('#itemSaveButton').bind('click', function() {
-    console.log(view);
     var thingProperties = view.properties.map( function(prop) {
       var propType = thingStore.lookup(prop.uri);
       var value;
       if(prop.literalProps) {
         value = $('input[prop-uri="' + prop.uri + '"]').val();
-        if(propType.property('range').hasParent(number)) {
+        if(propType.property(range).hasParent(number)) {
           value = parseFloat(value);
         }
       }
@@ -227,7 +205,7 @@ var displayThingDetailsEdit = function(thing) {
         var value = $.makeArray($('[prop-uri="' + propType.uri + '"] .literal').map( function() {
           return $(this).val();
         }));
-        if(propType.property('range').hasParent(number)) {
+        if(propType.property(range).hasParent(number)) {
           value = value.map( function(each) {
             return parseFloat(value);
           })
@@ -247,10 +225,64 @@ var displayThingDetailsEdit = function(thing) {
       }
       return [propType, value];
     });
-    console.log(thingProperties);
     thing.extend(thingProperties);
     thingStore.commit();
     displayThingDetails(thing);
+  });
+}
+var thingListInputField = function(options) {
+  thingInputField({
+    domElement: options.domElement,
+    onSelect: function(event, ui) {
+      $(this).before('<div><div class="thing" uri="' + ui.item.uri + '">' + ui.item.value + '</div>&nbsp;<span onClick="$(this).parent().remove()">-</span><br></div>');
+      this.value = '';
+      return false;
+    }
+  });
+}
+var thingSingleInputField = function(options) {
+  thingInputField({
+    domElement: options.domElement,
+    onSelect: function(event, ui) {
+      $(this).parent().find('.thing').text(ui.item.value).attr('uri', ui.item.uri).parent().removeClass('invisible');
+      $(this).addClass('invisible');
+      this.value = '';
+      return false;
+    }
+  });
+}
+var thingInputField = function(options) {
+  var domElement = options.domElement;
+  var onSelect = options.onSelect;
+  var split = function ( val ) {
+    return val.split( /,\s*/ );
+  }
+  var extractLast= function ( term ) {
+    return split( term ).pop();
+  }
+  $(domElement).each( function() {
+    var focus = $(this);
+    var propType = thingStore.lookup($(this).attr('prop-uri'));
+    var propRange = propType.property(range);
+    thingStore.instances(propRange, function(instances) {
+      var data = instances.map( function(each) {
+        return {label: each.label(), uri: each.uri}
+      });
+      data.unshift({label: propRange.label(), uri: propRange.uri});
+      $(focus).each( function() {
+        var inputfield = $(this);
+        inputfield.autocomplete({
+          minLength: 0,
+          source: function( request, response ) {
+            response($.ui.autocomplete.filter(data, extractLast(request.term)));
+          },
+          focus: function() {
+            return false;
+          },
+          select: onSelect
+        })
+      });
+    });
   });
 }
 var addRemovableEditField = function(domElement, classes) {
@@ -267,14 +299,14 @@ var formatView = function(view) {
     if(each.value.constructor == Array) {
       if(each.literal) {
         /*for(var i=0; i<each.value.length-1; i++) {
-          each.value[i] = each.value[i] + ', ';
-        }*/
+         each.value[i] = each.value[i] + ', ';
+         }*/
         each.literalListProps = true;
         return each;
       } else {
         /*for(var i=0; i<each.value.length-1; i++) {
-          each.value[i].label = each.value[i].label + ', ';
-        }*/
+         each.value[i].label = each.value[i].label + ', ';
+         }*/
         each.thingListProps = true;
         return each;
       }
