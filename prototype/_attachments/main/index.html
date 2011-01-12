@@ -53,7 +53,7 @@ body {
         <td>
           <div id="instance-list">
           <script id="instanceListTemplate" type="text/html">
-                <span class="thing parent" uri="{{uri}}">{{label}}</span>&nbsp<button>New</button>
+                <span class="thing parent" uri="{{uri}}">{{label}}</span>&nbsp<button id="newItemButton">New</button>
                 <ul>
                   {{#things}}
                   <li><span class="thing instance" uri="{{uri}}">{{label}}</span></li>
@@ -64,7 +64,7 @@ body {
         </td>
         <td>
           <script id="thingDetailsTemplate" type="text/html">
-            <button id="itemEditButton">Edit</button>
+            <button id="itemEditButton">Edit</button>&nbsp<button id="itemDeleteButton">Delete</button>
             <table>
             {{#properties}}
               <tr>

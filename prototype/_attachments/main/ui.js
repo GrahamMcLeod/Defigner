@@ -164,7 +164,14 @@ var displayInstanceList = function(prototype, domElement, cb) {
     var html = ich.instanceListTemplate(data);
     $('#instance-list').html(html);
     addThingEvents();
-  })
+    var newItemButton = function() {
+      $('#newItemButton').bind('click', function() {
+        var newItem = prototype.make(new Date().getTime().toString());
+        displayThingDetailsEdit(newItem);
+      });
+    }
+    newItemButton();
+  });
 }
 var displayThingDetails = function(thing) {
   var view = formatView(thing.view());
@@ -189,6 +196,7 @@ var displayThingDetailsEdit = function(thing) {
   });
 
   $('#itemCancelButton').bind('click', function() {
+    thingStore.revert();
     displayThingDetails(thing);
   });
   $('#itemSaveButton').bind('click', function() {
