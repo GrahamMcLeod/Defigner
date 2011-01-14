@@ -70,7 +70,7 @@ var bootstrap = function(thingStore) {
     ['name', 'label'],
     [range.uri, string.uri],
     [domain.uri, thing.uri],
-    ['label', function() {return this.name}]
+    ['uri:thing/property/label', 'Label']
   ], true);
   
   //a description property

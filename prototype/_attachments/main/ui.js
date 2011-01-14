@@ -110,7 +110,7 @@ var tableViewTypeSelector = function() {
 var loadInstanceList = function(parent, cb) {
   thingStore.instances(parent, function(prototypeList) {
     formattedList = prototypeList.map( function(each) {
-      return {uri: each.uri, label: each.property(label)}
+      return {uri: each.uri, label: each.label()}
     });
     cb({label: parent.label(), uri: parent.uri, things: formattedList});
   })
@@ -166,7 +166,7 @@ var displayInstanceList = function(prototype, domElement, cb) {
     addThingEvents();
     var newItemButton = function() {
       $('#newItemButton').bind('click', function() {
-        var newItem = prototype.make(new Date().getTime().toString());
+        var newItem = prototype.make();
         displayThingDetailsEdit(newItem);
       });
     }
@@ -233,9 +233,14 @@ var displayThingDetailsEdit = function(thing) {
       }
       return [propType, value];
     });
-    thing.extend(thingProperties);
-    thingStore.commit();
-    displayThingDetails(thing);
+    try {
+      thing.extend(thingProperties);
+      thingStore.commit();
+      displayThingDetails(thing);
+    } catch(e) {
+      alert(e);
+    }
+
   });
 }
 var thingListInputField = function(options) {

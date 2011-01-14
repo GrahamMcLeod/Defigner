@@ -9,13 +9,17 @@ var createThingStore = function(db, userInfo, bootstrap) {
     toString: function() {
       return this.uri
     },
+    name: function(name) {
+      if(name) {
+        this.uri = this.parentURI() + '/' + encodeURIComponent(name).toLowerCase();
+      }
+    },
     label: function() {
       var labelProp = thingStore.lookup('uri:thing/property/label');
-      var label = this.property(labelProp);
-      if(label) {
-        return label;
+      if(this.hasOwnProperty(label)) {
+        return this.property(labelProp);
       } else {
-        return this.name;
+        return this.uri;
       }
     },
     serialize: function() {
@@ -51,14 +55,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
           uri: prop.uri
         });
       });
-      return {label: this.name, uri: this.uri, properties: properties};
-    },
-    myText: function () {
-      var tempText='';
-      for (var property in this) {
-        tempText=tempText+property+': '+this[property]+'\n'
-      };
-      return tempText
+      return {label: this.label(), uri: this.uri, properties: properties};
     },
     myHTML: function () {
       var tempHTML='';
@@ -83,7 +80,9 @@ var createThingStore = function(db, userInfo, bootstrap) {
       var newThing = this.parse(nameOrArray, createFromDB);
       if(!createFromDB) {
         newThing.property ("isAPrototype", false);
-        newThing.store();
+        if(nameOrArray) {
+          newThing.store();
+        }
         if(!this.isAPrototype) {
           this.isAPrototype = true;
           this.store();
@@ -97,20 +96,21 @@ var createThingStore = function(db, userInfo, bootstrap) {
       F.prototype = this;
       var newThing = new F();
       newThing.prototype = this.uri;
+      if(!nameOrArray) {
+        return newThing;
+      }
       if(typeof nameOrArray == 'string') {
-        var name = nameOrArray;
-        newThing.name = name;
-        newThing.uri = this.uri + '/' + encodeURIComponent(name).toLowerCase();
+        newThing.name(nameOrArray);
       } else {
         nameOrArray.forEach( function(each) {
           if (each[0] == 'name')
-            newThing.name = each[1];
+            newThing.name(each[1]);
           if (each[0] == 'uri')
             newThing.uri = each[1];
         });
-        if(!newThing.hasOwnProperty('uri')) {
-          newThing.uri = this.uri + '/' + encodeURIComponent(newThing.name).toLowerCase();
-        }
+        /*if(!newThing.hasOwnProperty('uri')) {
+         newThing.uri = this.uri + '/' + encodeURIComponent(newThing.name).toLowerCase();
+         }*/
         newThing.extend(nameOrArray);
       }
       if(newThing.postMake && (!createFromDB))
@@ -250,11 +250,11 @@ var createThingStore = function(db, userInfo, bootstrap) {
                   }
                 }
               } else {
-                throw new Error('invalid range');
+                throw new Error('Range must be of type ' + propRange.label());
               }
             }
           } else {
-            throw new Error('domain must be of type ' + domain.name);
+            throw new Error('Domain must be of type ' + propDomain.label());
           }
         } else {
           if(value.isAThing) {
