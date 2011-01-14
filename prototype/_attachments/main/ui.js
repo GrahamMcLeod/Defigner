@@ -173,15 +173,17 @@ var displayInstanceList = function(prototype, domElement, cb) {
           onSave: function(newProperties) {
             try {
               var name = newProperties.filter( function(each) {
-                return each[0] == label
+                return each[0].uri() == label.uri();
               })[0][1];
+              newItem.name(name);
+              newItem.extend(newProperties);
+              thingStore.commit();
+              displayThingDetails(newItem);
             } catch(e) {
-              alert('Item needs a label to store it.')
+              alert('Item needs a label to store it.');
+              thingStore.revert();
+              displayThingDetails(prototype);
             }
-            newItem.name(name);
-            newItem.extend(newProperties);
-            thingStore.commit();
-            displayThingDetails(newItem);
           },
           onCancel: function() {
             thingStore.revert();

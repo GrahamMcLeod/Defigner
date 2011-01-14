@@ -124,10 +124,8 @@ var createThingStore = function(db, userInfo, bootstrap) {
           if (each[0] == 'uri')
             newThing.uri(each[1]);
         });
-        newThing.extend(nameOrArray);
+        newThing.extend(nameOrArray, noChecks);
       }
-      if(newThing.postMake && (!noChecks))
-        newThing.postMake();
       return newThing;
     },
     store: function() {
@@ -168,10 +166,16 @@ var createThingStore = function(db, userInfo, bootstrap) {
       }
       return {value: value, inherited: inherited};
     },
-    propertyAppend: function(name, value) {
-      var currentProperty = this.property(name, value);
-      currentProperty.push(value);
-      this.property(name, value);
+    propertyAppend: function(name, value, checkExistence) {
+      var currentProperty = this.property(name);
+      if(checkExistence) {
+        if(currentProperty.indexOf(value) == -1) {
+          currentProperty.push(value);
+        }
+      } else {
+        currentProperty.push(value);
+      }
+      this.property(name, currentProperty);
     },
     property: function(name, value, noChecks) {
       var that = this;
@@ -179,7 +183,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
         var value = this[name];
         if(!value)
           return value;
-        if((['prototype', 'inverse', range].indexOf(name) > -1) && (value != undefined))
+        if((['prototype', range].indexOf(name) > -1) && (value != undefined))
           return thingStore.lookup(value);
         if(name.isAThing) {
           if(! name.property(range).hasParent('uri:thing/literal')) {
@@ -232,7 +236,6 @@ var createThingStore = function(db, userInfo, bootstrap) {
                   validRange = false;
               }
               if(validRange) {
-                var inverse = name.property('inverse');
                 if(isCollection) {
                   var serializedValue = value.map( function(each) {
                     return each.uri()
@@ -243,28 +246,31 @@ var createThingStore = function(db, userInfo, bootstrap) {
                 this[name] = serializedValue;
 
                 //check if there is inverse property defined and create if necessary
-                if(inverse) {
-                  if(isCollection) {
-                    value.forEach( function(each) {
-                      var inversePropertyValue = each[inverse];
-                      if(!inversePropertyValue)
-                        inversePropertyValue = [];
-                      if(inversePropertyValue.indexOf(that.uri()) == -1) {
-                        if(each.hasOwnProperty(inverse)) {
-                          inversePropertyValue.push(that.uri());
-                        } else {
-                          inversePropertyValue = [that.uri()];
+                var inversePropCol = name.property(inverse);
+                if(inversePropCol) {
+                  inversePropCol.forEach( function(inverseProp) {
+                    if(isCollection) {
+                      value.forEach( function(each) {
+                        var inversePropertyValue = each[inverseProp];
+                        if(!inversePropertyValue)
+                          inversePropertyValue = [];
+                        if(inversePropertyValue.indexOf(that.uri()) == -1) {
+                          if(each.hasOwnProperty(inverseProp)) {
+                            inversePropertyValue.push(that.uri());
+                          } else {
+                            inversePropertyValue = [that.uri()];
+                          }
+                          each[inverseProp] = inversePropertyValue;
+                          each.store();
                         }
-                        each[inverse] = inversePropertyValue;
-                        each.store();
+                      })
+                    } else {
+                      if(!(value[inverseProp] == that.uri())) {
+                        value[inverseProp] = that.uri();
+                        value.store();
                       }
-                    })
-                  } else {
-                    if(!(value[inverse] == this.uri())) {
-                      value[inverse] = this.uri();
-                      value.store();
                     }
-                  }
+                  });
                 }
               } else {
                 throw new Error('Range must be of type ' + propRange.label());
@@ -454,6 +460,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
     var label = thingStore.lookup('uri:thing/property/label');
     var range = thingStore.lookup('uri:thing/property/range');
     var domain = thingStore.lookup('uri:thing/property/domain');
+    var inverse = thingStore.lookup('uri:thing/property/collection/inverse');
     thing.property(label, 'Thing');
   }
   thingStore.userInfo(userInfo);

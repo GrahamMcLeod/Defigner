@@ -12,7 +12,7 @@ var runExamples = function(dict) {
   var relationship = dict('relationship');
   var range = dict('range');
   var domain = dict('domain');
-  
+  var inverse = dict('inverse');
 //defining some properties to use:  
   var createdAt = property.make([
     ['name', 'created_at'],
@@ -179,7 +179,7 @@ var runExamples = function(dict) {
   var ownedByPerson = relationship.make([
     ['name', 'owned_by_person'],
     [label, 'owned by'],
-    ['inverse', personOwns]
+    [inverse, [personOwns]]
   ]);
   
   var knows = relationship.make([
@@ -192,7 +192,7 @@ var runExamples = function(dict) {
   var knownBy = relationship.make([
     ['name', 'known_by'],
     [label, 'known by'],
-    ['inverse', knows]
+    [inverse, [knows]]
   ]); 
   
   person.property(knows, [person]);

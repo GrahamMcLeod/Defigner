@@ -12,7 +12,8 @@ var createDictionary = function(thingStore) {
     'label': 'uri:thing/property/label',
     'description': 'uri:thing/property/description',
     'collection': 'uri:thing/property/collection',
-    'relationship': 'uri:thing/property/collection/relationship'
+    'relationship': 'uri:thing/property/collection/relationship',
+    'inverse': 'uri:thing/property/collection/inverse'
   }
   var dict = function(name, value) {
     if(value) {
