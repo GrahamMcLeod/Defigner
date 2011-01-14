@@ -12,6 +12,7 @@ thingStore = createThingStore('prototype', userInfo);
 dict = createDictionary(thingStore);
 var label = dict('label');
 var collection = dict('collection');
+var literal = dict('literal');
 
 // Define functions
 // Fetch a collection of objects from the store using a named starting point and following 1 level of relationships
@@ -21,7 +22,7 @@ var fetchGraph = function (startURI, nodes, links, options) {
     var pos;
     var added = false;
     nodes.forEach( function(each, i) {
-      if(each.uri == node.uri) {
+      if(each.uri == node.uri()) {
         pos = i;
       }
     });
@@ -30,7 +31,7 @@ var fetchGraph = function (startURI, nodes, links, options) {
         nodeName: node.property(label),
         thing: node,
         group: 1,
-        uri: node.uri,
+        uri: node.uri(),
       };
       if(options) {
         if(options.x && options.y) {
@@ -50,7 +51,7 @@ var fetchGraph = function (startURI, nodes, links, options) {
   }
   var sourcePosInfo = addNode(startNode);
   var rels = startNode.properties().filter( function(each) {
-    return each.hasParent(collection)
+    return each.hasParent(collection) && (!each.hasParent(literal))
   });
   rels.forEach( function(rel) {
     startNode.property(rel).forEach( function(each) {

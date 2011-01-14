@@ -62,11 +62,13 @@ var createThingStore = function(db, userInfo, bootstrap) {
       var that = this;
       this.properties().forEach( function(prop) {
         var valueInfo = that.propertyLabel(prop);
+        var isCollection = prop.property('collection');
         var isLiteral = prop.property(range).hasParent('uri:thing/literal');
         properties.push({
           label: prop.label(),
           value: valueInfo.value,
-          literal: isLiteral,
+          isLiteral: isLiteral,
+          isCollection: isCollection,
           inherited: valueInfo.inherited,
           uri: prop.uri()
         });
@@ -150,7 +152,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
       }
       var value = that.property(prop);
       if(prop.isAThing) {
-        if(value.constructor == Array) {
+        if(prop.property('collection')) {
           if(!prop.property(range).hasParent('uri:thing/literal')) {
             value = value.map( function(each) {
               var label = each.label();
@@ -158,7 +160,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
             });
           }
         } else {
-          if(!prop.property(range).hasParent('uri:thing/literal')) {
+          if(!prop.property(range).hasParent('uri:thing/literal') && (value != null) && (value != "")) {
             var label = value.label();
             value = {label: label, uri: value.uri()}
           }
@@ -179,7 +181,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
     },
     property: function(name, value, noChecks) {
       var that = this;
-      if(value == undefined) {
+      if(value === undefined) {
         var value = this[name];
         if(!value)
           return value;
@@ -211,7 +213,15 @@ var createThingStore = function(db, userInfo, bootstrap) {
           var propRange = name.property(range);
           var isCollection = name.property('collection');
           var validRange = true;
-          if((this == propDomain) | (this.hasParent(propDomain))) {
+          if(this.hasParent(propDomain)) {
+            if(value == null) {
+              if(isCollection) {
+                this[name] = [];
+              } else {
+                this[name] = null;
+              }
+              return;
+            }
             if(propRange.hasParent('uri:thing/literal')) {
               if(isCollection) {
                 value.forEach( function(each) {
@@ -228,11 +238,11 @@ var createThingStore = function(db, userInfo, bootstrap) {
             } else {
               if(isCollection) {
                 value.forEach( function(each) {
-                  if((each != propRange) && (!each.hasParent(propRange)))
+                  if(!each.hasParent(propRange))
                     validRange = false;
                 });
               } else {
-                if((value != propRange) && (!value.hasParent(propRange)))
+                if(!value.hasParent(propRange))
                   validRange = false;
               }
               if(validRange) {
@@ -277,7 +287,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
               }
             }
           } else {
-            throw new Error(propDomain.label() + ' has ' + propDomain.property(domain).label() + ' as the domain. ' + this.label() + ' is of type ' + this.parent().label() + '.');
+            throw new Error(name.label() + ' has ' + propDomain.label() + ' as the domain. ' + that.label() + ' is therefore not valid.');
           }
         } else {
           if(value.isAThing) {
@@ -306,12 +316,16 @@ var createThingStore = function(db, userInfo, bootstrap) {
       return this.prototype();
     },
     parent: function() {
-      return thingStore.lookup[this.parentURI()];
+      return thingStore.lookup(this.parentURI());
     },
     hasParent: function(type) {
       if(type.isAThing)
         type = type.uri();
-      return this.prototype().indexOf(type) == 0;
+      if(this == type) {
+        return true;
+      } else {
+        return this.prototype().indexOf(type) == 0;
+      }
     }
   };
   // Define the thingStore which holds the collection of things created and provides methods to manipulate objects

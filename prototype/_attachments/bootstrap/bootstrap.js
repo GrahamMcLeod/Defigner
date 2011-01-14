@@ -57,6 +57,13 @@ var bootstrap = function(thingStore) {
   ['isAPrototype', true]
   ], true);
 
+  var propertySelect = property.make([
+  ['name', 'select-property'],
+  ['uri:thing/property/label', 'Select Property'],
+  ['uri:thing/property/range', 'uri:thing/property'],
+  ['collection', false]
+  ], true);
+
   var range = property.make([
   ['name', 'range'],
   ['uri:thing/property/label', 'range'],

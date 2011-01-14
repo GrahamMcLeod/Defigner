@@ -114,10 +114,16 @@ body {
                 {{/literalListProps}}
                 {{#thingProps}}
                   <div prop-uri="{{uri}}">
-                  {{#value}}
-                  <div><div class="thing" uri="{{uri}}">{{label}}</div>&nbsp;<span class="remove-button" onClick="$(this).parent().addClass('invisible').parent().find('input').removeClass('invisible'); ">-</span><br/></div>
-                  {{/value}}
-                  <input name="{{label}}" class="select-single-thing invisible" prop-uri="{{uri}}"/>
+                  <div {{^value}}class="invisible"{{/value}}>
+                    {{#value}}
+                    <div class="thing" uri="{{uri}}">{{label}}</div>&nbsp;
+                    {{/value}}
+                    {{^value}}
+                    <div class="thing"></div>&nbsp;
+                    {{/value}}
+                    <span class="remove-button" onClick="$(this).parent().find('.thing').removeAttr('uri'); $(this).parent().addClass('invisible').parent().find('input').removeClass('invisible'); ">-</span><br/>
+                  </div>
+                  <input name="{{label}}" class="select-single-thing {{#value}}invisible{{/value}}" prop-uri="{{uri}}"/>
                   </div>
                 {{/thingProps}}
                 {{#thingListProps}}
@@ -130,7 +136,14 @@ body {
                 {{/thingListProps}}
                 </td>
               </tr>
-            {{/properties}} 
+            {{/properties}}
+              <tr>
+                <td>
+                  <input name="new-property" prop-uri="uri:thing/property/select-property"/>
+                </td>
+                <td>
+                </td>
+              </tr>
             </table>
             </form>
           </script>

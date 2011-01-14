@@ -222,6 +222,20 @@ var displayThingDetailsEdit = function(options) {
     domElement: 'input[class*="select-single-thing"]'
   });
 
+  thingInputField({
+    domElement: 'input[name*="new-property"]',
+    onSelect: function(event, ui) {
+      var prop = thingStore.lookup(ui.item.uri);
+      try {
+        focusThing.property(prop, null);
+        displayThingDetailsEdit(options);
+      } catch(e) {
+        alert(e);
+      }
+      return false;
+    }
+  });
+
   $('#itemCancelButton').bind('click', function() {
     if(onCancel) {
       onCancel();
@@ -252,7 +266,11 @@ var displayThingDetailsEdit = function(options) {
       }
       if(prop.thingProps) {
         var URI = $('[prop-uri="' + propType.uri() + '"] .thing').first().attr('uri');
-        value = thingStore.lookup(URI);
+        if(!URI) {
+          value = null;
+        } else {
+          value = thingStore.lookup(URI);
+        }
       }
       if(prop.thingListProps) {
         var URIs = $.makeArray($('[prop-uri="' + propType.uri() + '"] .thing').map( function() {
@@ -343,22 +361,16 @@ var formatView = function(view) {
     uri: view.uri
   };
   var properties = view.properties.map( function(each) {
-    if(each.value.constructor == Array) {
-      if(each.literal) {
-        /*for(var i=0; i<each.value.length-1; i++) {
-         each.value[i] = each.value[i] + ', ';
-         }*/
+    if(each.isCollection) {
+      if(each.isLiteral) {
         each.literalListProps = true;
         return each;
       } else {
-        /*for(var i=0; i<each.value.length-1; i++) {
-         each.value[i].label = each.value[i].label + ', ';
-         }*/
         each.thingListProps = true;
         return each;
       }
     } else {
-      if(each.literal) {
+      if(each.isLiteral) {
         each.literalProps = true;
         return each;
       } else {
