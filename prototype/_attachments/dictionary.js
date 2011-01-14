@@ -12,7 +12,7 @@ var createDictionary = function(thingStore) {
     'label': 'uri:thing/property/label',
     'description': 'uri:thing/property/description',
     'collection': 'uri:thing/property/collection',
-    'relationship': 'uri:thing/property/collection'
+    'relationship': 'uri:thing/property/collection/relationship'
   }
   var dict = function(name, value) {
     if(value) {

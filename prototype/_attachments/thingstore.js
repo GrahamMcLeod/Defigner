@@ -92,9 +92,9 @@ var createThingStore = function(db, userInfo, bootstrap) {
     propHTML: function () {
       return this.property ('name')
     },
-    make: function(nameOrArray, createFromDB) {
-      var newThing = this.parse(nameOrArray, createFromDB);
-      if(!createFromDB) {
+    make: function(nameOrArray, noChecks) {
+      var newThing = this.parse(nameOrArray, noChecks);
+      if(!noChecks) {
         newThing.property ("isAPrototype", false);
         if(nameOrArray) {
           newThing.store();
@@ -106,7 +106,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
       }
       return newThing;
     },
-    parse: function(nameOrArray, createFromDB) {
+    parse: function(nameOrArray, noChecks) {
       var F = function() {
       };
       F.prototype = this;
@@ -126,20 +126,20 @@ var createThingStore = function(db, userInfo, bootstrap) {
         });
         newThing.extend(nameOrArray);
       }
-      if(newThing.postMake && (!createFromDB))
+      if(newThing.postMake && (!noChecks))
         newThing.postMake();
       return newThing;
     },
     store: function() {
       thingStore.save(this);
     },
-    extend: function(array) {
+    extend: function(array, noChecks) {
       var thing = this;
       array.forEach( function(each) {
         if(typeof each[1] == 'function') {
           thing.method(each[0], each[1]);
         } else {
-          thing.property(each[0], each[1]);
+          thing.property(each[0], each[1], noChecks);
         }
       });
       thingStore.save(this);
@@ -173,7 +173,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
       currentProperty.push(value);
       this.property(name, value);
     },
-    property: function(name, value) {
+    property: function(name, value, noChecks) {
       var that = this;
       if(value == undefined) {
         var value = this[name];
@@ -198,6 +198,10 @@ var createThingStore = function(db, userInfo, bootstrap) {
         if(['name', 'uri', 'namespace', 'isAThing'].indexOf(name) > -1) {
           return
         };
+        if(noChecks) {
+          this[name] = value;
+          return;
+        }
         if(name.isAThing) {
           var propDomain = name.property(domain);
           var propRange = name.property(range);

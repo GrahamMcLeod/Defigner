@@ -200,10 +200,7 @@ var displayThingDetails = function(focusThing) {
   addThingEvents();
   $('#itemEditButton').bind('click', function() {
     displayThingDetailsEdit({
-      focusThing: focusThing,
-      onCancel: function() {
-
-      }
+      focusThing: focusThing
     });
   });
 };

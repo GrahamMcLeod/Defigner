@@ -3,7 +3,8 @@ var bootstrap = function(thingStore) {
   //the basic data types:
   var literal = thing.make([
     ['name', 'literal'],
-    ['uri:thing/property/label', 'Literal']
+    ['uri:thing/property/label', 'Literal'],
+    ['isAPrototype', true]
   ], true);
   
   var string = literal.make([
@@ -37,6 +38,7 @@ var bootstrap = function(thingStore) {
     ['uri:thing/property/domain', 'uri:thing'],
     ['uri:thing/property/range', 'uri:thing'],
     ['collection', false],
+    ['isAPrototype', true],
     ['postMake', function() {
       var inverse = this.property('inverse');
       if(inverse) {
@@ -51,7 +53,7 @@ var bootstrap = function(thingStore) {
   
   var range = property.make([
     ['name', 'range'],
-    ['uri:thing/property/label', 'Range'],
+    ['uri:thing/property/label', 'range'],
     ['validateProperty', function(value) {return value.hasOwnProperty('_uri')}],
     ['uri:thing/property/range', 'uri:thing'],
     ['uri:thing/property/domain', 'uri:thing/property']
@@ -59,7 +61,7 @@ var bootstrap = function(thingStore) {
   
   var domain = property.make([
     ['name', 'domain'],
-    ['uri:thing/property/label', 'Domain'],
+    ['uri:thing/property/label', 'domain'],
     ['validateProperty', function(value) {return value.hasOwnProperty('_uri')}],
     ['uri:thing/property/range', 'uri:thing'],
     ['uri:thing/property/domain', 'uri:thing/property']
@@ -70,7 +72,7 @@ var bootstrap = function(thingStore) {
     ['name', 'label'],
     [range.uri(), string.uri()],
     [domain.uri(), thing.uri()],
-    ['uri:thing/property/label', 'Label']
+    ['uri:thing/property/label', 'label']
   ], true);
   
   //a description property
@@ -82,12 +84,19 @@ var bootstrap = function(thingStore) {
   var collection = property.make([
     ['name', 'collection'],
     ['collection', true],
-    [label.uri(), 'a property with multiple values']
+    ['isAPrototype', true],
+    [label.uri(), 'collection']
+  ], true);
+  
+  var inverse = property.make([
+    ['name', 'inverse'],
+    [label.uri(), 'inverse']
   ], true);
   
   var relationship = collection.make([
     ['name', 'relationship'],
-    [label.uri(), 'a relationship']
+    ['isAPrototype', true],
+    [label.uri(), 'relationship']
   ], true);
   
   // relationship to set types
