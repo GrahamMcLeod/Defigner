@@ -167,23 +167,51 @@ var displayInstanceList = function(prototype, domElement, cb) {
     var newItemButton = function() {
       $('#newItemButton').bind('click', function() {
         var newItem = prototype.make();
-        displayThingDetailsEdit(newItem);
+        newItem.property(label, '');
+        displayThingDetailsEdit({
+          focusThing: newItem,
+          onSave: function(newProperties) {
+            try {
+              var name = newProperties.filter( function(each) {
+                return each[0] == label
+              })[0][1];
+            } catch(e) {
+              alert('Item needs a label to store it.')
+            }
+            newItem.name(name);
+            newItem.extend(newProperties);
+            thingStore.commit();
+            displayThingDetails(newItem);
+          },
+          onCancel: function() {
+            thingStore.revert();
+            displayThingDetails(prototype);
+          }
+        });
       });
     }
     newItemButton();
   });
 }
-var displayThingDetails = function(thing) {
-  var view = formatView(thing.view());
+var displayThingDetails = function(focusThing) {
+  var view = formatView(focusThing.view());
   var html = ich.thingDetailsTemplate(view);
   $('#thing-details').html(html);
   addThingEvents();
   $('#itemEditButton').bind('click', function() {
-    displayThingDetailsEdit(thing);
+    displayThingDetailsEdit({
+      focusThing: focusThing,
+      onCancel: function() {
+
+      }
+    });
   });
 };
-var displayThingDetailsEdit = function(thing) {
-  var view = formatView(thing.view());
+var displayThingDetailsEdit = function(options) {
+  var focusThing = options.focusThing;
+  var onSave = options.onSave;
+  var onCancel = options.onCancel;
+  var view = formatView(focusThing.view());
   var html = ich.thingDetailsEditTemplate(view);
 
   $('#thing-details').html(html);
@@ -196,8 +224,12 @@ var displayThingDetailsEdit = function(thing) {
   });
 
   $('#itemCancelButton').bind('click', function() {
-    thingStore.revert();
-    displayThingDetails(thing);
+    if(onCancel) {
+      onCancel();
+    } else {
+      thingStore.revert();
+      displayThingDetails(focusThing);
+    }
   });
   $('#itemSaveButton').bind('click', function() {
     var thingProperties = view.properties.map( function(prop) {
@@ -233,14 +265,17 @@ var displayThingDetailsEdit = function(thing) {
       }
       return [propType, value];
     });
-    try {
-      thing.extend(thingProperties);
-      thingStore.commit();
-      displayThingDetails(thing);
-    } catch(e) {
-      alert(e);
+    if(onSave) {
+      onSave(thingProperties);
+    } else {
+      try {
+        focusThing.extend(thingProperties);
+        thingStore.commit();
+        displayThingDetails(focusThing);
+      } catch(e) {
+        alert(e);
+      }
     }
-
   });
 }
 var thingListInputField = function(options) {

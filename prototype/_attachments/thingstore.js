@@ -203,7 +203,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
           var propRange = name.property(range);
           var isCollection = name.property('collection');
           var validRange = true;
-          if(this.hasParent(propDomain)) {
+          if((this == propDomain) | (this.hasParent(propDomain))) {
             if(propRange.hasParent('uri:thing/literal')) {
               if(isCollection) {
                 value.forEach( function(each) {
@@ -220,11 +220,11 @@ var createThingStore = function(db, userInfo, bootstrap) {
             } else {
               if(isCollection) {
                 value.forEach( function(each) {
-                  if(!each.hasParent(propRange))
+                  if((each != propRange) && (!each.hasParent(propRange)))
                     validRange = false;
                 });
               } else {
-                if(!value.hasParent(propRange))
+                if((value != propRange) && (!value.hasParent(propRange)))
                   validRange = false;
               }
               if(validRange) {
@@ -267,7 +267,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
               }
             }
           } else {
-            throw new Error('Domain must be of type ' + propDomain.label());
+            throw new Error(propDomain.label() + ' has ' + propDomain.property(domain).label() + ' as the domain. ' + this.label() + ' is of type ' + this.parent().label() + '.');
           }
         } else {
           if(value.isAThing) {
@@ -301,7 +301,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
     hasParent: function(type) {
       if(type.isAThing)
         type = type.uri();
-      return this.uri().indexOf(type) == 0;
+      return this.prototype().indexOf(type) == 0;
     }
   };
   // Define the thingStore which holds the collection of things created and provides methods to manipulate objects
