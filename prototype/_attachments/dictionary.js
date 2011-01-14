@@ -16,7 +16,7 @@ var createDictionary = function(thingStore) {
   }
   var dict = function(name, value) {
     if(value) {
-      if(value.isAThing) value = value.uri;
+      if(value.isAThing) value = value.uri();
       dictData[name] = value;
     } else {
       return thingStore.lookup(dictData[name]);

@@ -1,17 +1,33 @@
 var createThingStore = function(db, userInfo, bootstrap) {
   var thing = {
-    name: 'thing',
-    uri: 'uri:thing',
-    prototype: 'thing',
-    namespace: 'default_context',
+    _uri: 'uri:thing',
+    _prototype: 'thing',
     isAThing: true,
     isAPrototype: true,
     toString: function() {
-      return this.uri
+      return this.uri()
     },
     name: function(name) {
       if(name) {
-        this.uri = this.parentURI() + '/' + encodeURIComponent(name).toLowerCase();
+        this.uri(this.parentURI() + '/' + encodeURIComponent(name).toLowerCase());
+      }
+    },
+    uri: function(uri) {
+      if(uri) {
+        this._uri = uri;
+      } else {
+        if(this.hasOwnProperty('_uri')) {
+          return this._uri;
+        } else {
+          return undefined;
+        }
+      }
+    },
+    prototype: function(uri) {
+      if(uri) {
+        this._prototype = uri;
+      } else {
+        return this._prototype;
       }
     },
     label: function() {
@@ -19,7 +35,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
       if(this.hasOwnProperty(label)) {
         return this.property(labelProp);
       } else {
-        return this.uri;
+        return this.uri();
       }
     },
     serialize: function() {
@@ -52,10 +68,10 @@ var createThingStore = function(db, userInfo, bootstrap) {
           value: valueInfo.value,
           literal: isLiteral,
           inherited: valueInfo.inherited,
-          uri: prop.uri
+          uri: prop.uri()
         });
       });
-      return {label: this.label(), uri: this.uri, properties: properties};
+      return {label: this.label(), uri: this.uri(), properties: properties};
     },
     myHTML: function () {
       var tempHTML='';
@@ -95,7 +111,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
       };
       F.prototype = this;
       var newThing = new F();
-      newThing.prototype = this.uri;
+      newThing.prototype(this.uri());
       if(!nameOrArray) {
         return newThing;
       }
@@ -106,11 +122,8 @@ var createThingStore = function(db, userInfo, bootstrap) {
           if (each[0] == 'name')
             newThing.name(each[1]);
           if (each[0] == 'uri')
-            newThing.uri = each[1];
+            newThing.uri(each[1]);
         });
-        /*if(!newThing.hasOwnProperty('uri')) {
-         newThing.uri = this.uri + '/' + encodeURIComponent(newThing.name).toLowerCase();
-         }*/
         newThing.extend(nameOrArray);
       }
       if(newThing.postMake && (!createFromDB))
@@ -143,13 +156,13 @@ var createThingStore = function(db, userInfo, bootstrap) {
           if(!prop.property(range).hasParent('uri:thing/literal')) {
             value = value.map( function(each) {
               var label = each.label();
-              return {label: label, uri: each.uri}
+              return {label: label, uri: each.uri()}
             });
           }
         } else {
           if(!prop.property(range).hasParent('uri:thing/literal')) {
             var label = value.label();
-            value = {label: label, uri: value.uri}
+            value = {label: label, uri: value.uri()}
           }
         }
       }
@@ -218,10 +231,10 @@ var createThingStore = function(db, userInfo, bootstrap) {
                 var inverse = name.property('inverse');
                 if(isCollection) {
                   var serializedValue = value.map( function(each) {
-                    return each.uri
+                    return each.uri()
                   });
                 } else {
-                  var serializedValue = value.uri;
+                  var serializedValue = value.uri();
                 }
                 this[name] = serializedValue;
 
@@ -232,19 +245,19 @@ var createThingStore = function(db, userInfo, bootstrap) {
                       var inversePropertyValue = each[inverse];
                       if(!inversePropertyValue)
                         inversePropertyValue = [];
-                      if(inversePropertyValue.indexOf(that.uri) == -1) {
+                      if(inversePropertyValue.indexOf(that.uri()) == -1) {
                         if(each.hasOwnProperty(inverse)) {
-                          inversePropertyValue.push(that.uri);
+                          inversePropertyValue.push(that.uri());
                         } else {
-                          inversePropertyValue = [that.uri];
+                          inversePropertyValue = [that.uri()];
                         }
                         each[inverse] = inversePropertyValue;
                         each.store();
                       }
                     })
                   } else {
-                    if(!(value[inverse] == this.uri)) {
-                      value[inverse] = this.uri;
+                    if(!(value[inverse] == this.uri())) {
+                      value[inverse] = this.uri();
                       value.store();
                     }
                   }
@@ -258,7 +271,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
           }
         } else {
           if(value.isAThing) {
-            this[name] = value.uri;
+            this[name] = value.uri();
           } else {
             this[name] = value;
           }
@@ -280,15 +293,15 @@ var createThingStore = function(db, userInfo, bootstrap) {
       this[name] = value;
     },
     parentURI: function() {
-      return this.prototype;
+      return this.prototype();
     },
     parent: function() {
       return thingStore.lookup[this.parentURI()];
     },
     hasParent: function(type) {
       if(type.isAThing)
-        type = type.uri;
-      return this.uri.indexOf(type) == 0;
+        type = type.uri();
+      return this.uri().indexOf(type) == 0;
     }
   };
   // Define the thingStore which holds the collection of things created and provides methods to manipulate objects
@@ -304,11 +317,11 @@ var createThingStore = function(db, userInfo, bootstrap) {
       $.ajax({
         type: 'GET',
         async: true,
-        url: this.db + '/_design/prototype/_view/prototypes?include_docs=true&key=' + JSON.stringify(parent.uri),
+        url: this.db + '/_design/prototype/_view/prototypes?include_docs=true&key=' + JSON.stringify(parent.uri()),
         success: function(jsonData) {
           var data = JSON.parse(jsonData);
           var prototypeList = data.rows.map( function (each) {
-            var localThing = that.lookupLocal(each.doc.thing.uri);
+            var localThing = that.lookupLocal(each.doc.thing._uri);
             if(localThing) {
               return localThing;
             } else {
@@ -325,11 +338,11 @@ var createThingStore = function(db, userInfo, bootstrap) {
         type: 'GET',
         async: true,
         url: this.db + '/_design/prototype/_view/instances?include_docs=true&startkey='
-        + JSON.stringify(parent.uri + '/') + '&endkey="' + parent.uri +'0"',
+        + JSON.stringify(parent.uri() + '/') + '&endkey="' + parent.uri() +'0"',
         success: function(jsonData) {
           var data = JSON.parse(jsonData);
           var prototypeList = data.rows.map( function (each) {
-            var localThing = that.lookupLocal(each.doc.thing.uri);
+            var localThing = that.lookupLocal(each.doc.thing._uri);
             if(localThing) {
               return localThing;
             } else {
@@ -357,13 +370,13 @@ var createThingStore = function(db, userInfo, bootstrap) {
       return thing;
     },
     save: function(thing) {
-      this.localData[thing.uri] = thing;
+      this.localData[thing.uri()] = thing;
     },
     saveThingToCouch: function(thing, cb, rev) {
       var that = this;
       this.userInfoCached.postMake(thing);
       var thingSerialized = thing.serialize();
-      var encodedURI = encodeURI(thing.uri.replace(/\//g, '_'));
+      var encodedURI = encodeURI(thing.uri().replace(/\//g, '_'));
       var doc = {_id: encodedURI, thing: thingSerialized};
       if(rev)
         doc._rev = rev;
@@ -407,9 +420,9 @@ var createThingStore = function(db, userInfo, bootstrap) {
           eval('value = ' + value);
         thingData.push([prop, value]);
       }
-      var prototype = this.lookup(doc.thing.prototype);
+      var prototype = this.lookup(doc.thing._prototype);
       var thing = prototype.make(thingData, true);
-      this.persistedData[thing.uri] = thing;
+      this.persistedData[thing.uri()] = thing;
       return thing;
     },
     revert: function() {

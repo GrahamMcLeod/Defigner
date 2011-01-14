@@ -9,7 +9,7 @@ function(doc) {
     }
 */
     if(valid) {
-      emit(doc.thing.prototype + '/', doc.thing.uri);    
+      emit(doc.thing._prototype + '/', doc.thing._uri);    
     }
 //  }
 };

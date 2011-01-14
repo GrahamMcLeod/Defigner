@@ -50,7 +50,7 @@ var typeSelector = function(options) {
       var parseData = function(input) {
         var html = '<ul>'
         html += input.map( function(each) {
-          var innerHtml = '<li><span class="thing prototype" uri="' + each.prototype.uri + '">' + each.prototype.label() + '</span>';
+          var innerHtml = '<li><span class="thing prototype" uri="' + each.prototype.uri() + '">' + each.prototype.label() + '</span>';
           if(each.subprototypes.length > 0) {
             innerHtml += parseData(each.subprototypes);
           }
@@ -72,7 +72,7 @@ var typeSelector = function(options) {
     $(selector).treeview({
       //collapsed: true
     });
-    $(selector + ' .thing[uri="' + focusedType.uri + '"]').addClass('focus-type');
+    $(selector + ' .thing[uri="' + focusedType.uri() + '"]').addClass('focus-type');
     onSelectType(focusedType);
     $(selector + " .prototype").bind('click', function() {
       var thing = thingStore.lookup($(this).attr('uri'));
@@ -110,9 +110,9 @@ var tableViewTypeSelector = function() {
 var loadInstanceList = function(parent, cb) {
   thingStore.instances(parent, function(prototypeList) {
     formattedList = prototypeList.map( function(each) {
-      return {uri: each.uri, label: each.label()}
+      return {uri: each.uri(), label: each.label()}
     });
-    cb({label: parent.label(), uri: parent.uri, things: formattedList});
+    cb({label: parent.label(), uri: parent.uri(), things: formattedList});
   })
 }
 var formatPropertyValue = function(value, inherited) {
@@ -148,9 +148,9 @@ var loadTableData = function(parent, cb) {
         var inherited = valueInfo.inherited;
         return formatPropertyValue(value, inherited);
       });
-      return {uri: instance.uri, cells: cells};
+      return {uri: instance.uri(), cells: cells};
     });
-    cb({headings: headings, prototypeRow: {uri: parent.uri, cells: prototypeRow}, instanceRows: instanceRows});
+    cb({headings: headings, prototypeRow: {uri: parent.uri(), cells: prototypeRow}, instanceRows: instanceRows});
   });
 }
 var displayTableData = function(parent) {
@@ -210,7 +210,7 @@ var displayThingDetailsEdit = function(thing) {
         }
       }
       if(prop.literalListProps) {
-        var value = $.makeArray($('[prop-uri="' + propType.uri + '"] .literal').map( function() {
+        var value = $.makeArray($('[prop-uri="' + propType.uri() + '"] .literal').map( function() {
           return $(this).val();
         }));
         if(propType.property(range).hasParent(number)) {
@@ -220,11 +220,11 @@ var displayThingDetailsEdit = function(thing) {
         }
       }
       if(prop.thingProps) {
-        var URI = $('[prop-uri="' + propType.uri + '"] .thing').first().attr('uri');
+        var URI = $('[prop-uri="' + propType.uri() + '"] .thing').first().attr('uri');
         value = thingStore.lookup(URI);
       }
       if(prop.thingListProps) {
-        var URIs = $.makeArray($('[prop-uri="' + propType.uri + '"] .thing').map( function() {
+        var URIs = $.makeArray($('[prop-uri="' + propType.uri() + '"] .thing').map( function() {
           return $(this).attr('uri')
         }));
         value = URIs.map( function(each) {
@@ -279,9 +279,9 @@ var thingInputField = function(options) {
     var propRange = propType.property(range);
     thingStore.instances(propRange, function(instances) {
       var data = instances.map( function(each) {
-        return {label: each.label(), uri: each.uri}
+        return {label: each.label(), uri: each.uri()}
       });
-      data.unshift({label: propRange.label(), uri: propRange.uri});
+      data.unshift({label: propRange.label(), uri: propRange.uri()});
       $(focus).each( function() {
         var inputfield = $(this);
         inputfield.autocomplete({
@@ -361,7 +361,7 @@ $( function() {
   }
   var graphViewUpdate = function() {
     thingStore.instances(focus.type(), function(instances) {
-      renderGraph (instances[0].uri, [], [], {levels: 0});
+      renderGraph (instances[0].uri(), [], [], {levels: 0});
     })
   }
   browserTabUpdate();

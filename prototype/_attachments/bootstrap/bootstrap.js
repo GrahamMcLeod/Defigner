@@ -52,7 +52,7 @@ var bootstrap = function(thingStore) {
   var range = property.make([
     ['name', 'range'],
     ['uri:thing/property/label', 'Range'],
-    ['validateProperty', function(value) {return value.hasOwnProperty('uri')}],
+    ['validateProperty', function(value) {return value.hasOwnProperty('_uri')}],
     ['uri:thing/property/range', 'uri:thing'],
     ['uri:thing/property/domain', 'uri:thing/property']
   ], true);
@@ -60,7 +60,7 @@ var bootstrap = function(thingStore) {
   var domain = property.make([
     ['name', 'domain'],
     ['uri:thing/property/label', 'Domain'],
-    ['validateProperty', function(value) {return value.hasOwnProperty('uri')}],
+    ['validateProperty', function(value) {return value.hasOwnProperty('_uri')}],
     ['uri:thing/property/range', 'uri:thing'],
     ['uri:thing/property/domain', 'uri:thing/property']
   ], true);
@@ -68,50 +68,50 @@ var bootstrap = function(thingStore) {
   //a basic label property
   var label = property.make([
     ['name', 'label'],
-    [range.uri, string.uri],
-    [domain.uri, thing.uri],
+    [range.uri(), string.uri()],
+    [domain.uri(), thing.uri()],
     ['uri:thing/property/label', 'Label']
   ], true);
   
   //a description property
   var description = property.make([
     ['name', 'description'],
-    [range.uri, string.uri]
+    [range.uri(), string.uri()]
   ], true);
   
   var collection = property.make([
     ['name', 'collection'],
     ['collection', true],
-    [label.uri, 'a property with multiple values']
+    [label.uri(), 'a property with multiple values']
   ], true);
   
   var relationship = collection.make([
     ['name', 'relationship'],
-    [label.uri, 'a relationship']
+    [label.uri(), 'a relationship']
   ], true);
   
   // relationship to set types
   var ofType = collection.make([
     ['name', 'of_type'],
-    [label.uri, 'of Type'],
+    [label.uri(), 'of Type'],
   ], true);
   
   // property value to be used to declare a thing as a type
   var type = thing.make([
     ['name', 'type'],
-    [label.uri, 'Type']
+    [label.uri(), 'Type']
   ], true);
   
   // types to define security and visibility
   var hiddenThing = thing.make([
     ['name', 'hidden_thing'],
-    [label.uri, 'hidden thing'],
-    [ofType.uri, [type.uri]]
+    [label.uri(), 'hidden thing'],
+    [ofType.uri(), [type.uri()]]
   ], true);
   
   var systemThing = thing.make([
     ['name', 'system_thing'],
-    [label.uri, 'system thing'],
-    [ofType.uri, [type.uri]]
+    [label.uri(), 'system thing'],
+    [ofType.uri(), [type.uri()]]
   ], true);
 }
