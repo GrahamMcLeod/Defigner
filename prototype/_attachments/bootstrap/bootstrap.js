@@ -16,6 +16,8 @@ var bootstrap = function(thingStore) {
   
   var label = property.item('label');
   var ofType = collection.item('of-type');
+  var subTypeOf = collection.item('subtype-of');
+  var subPropertyOf = collection.item('subproperty-of');
   var hasProperties = collection.item('has-properties');
   var inverse = collection.item('inverse');
   var validate = property.item('validate');
@@ -90,14 +92,12 @@ var bootstrap = function(thingStore) {
   ], true);
   
   validate.extend([
-    ['name', 'validate'],
     [label.uri(), 'range'],
     [domain.uri(), thing.uri()],
     [range.uri(), 'uri:thing/literal/code']
   ], true);
   
   propertySelect.extend([
-    ['name', 'select-property'],
     [label.uri(), 'Select Property'],
     [range.uri(), property.uri()]
   ], true);
@@ -128,7 +128,6 @@ var bootstrap = function(thingStore) {
   ], true);
 
   collection.extend([
-    ['isAPrototype', true],
     [label.uri(), 'collection']
   ], true);
 
@@ -140,7 +139,6 @@ var bootstrap = function(thingStore) {
   ], true);
 
   relationship.extend([
-    ['isAPrototype', true],
     [label.uri(), 'relationship'],
     [hasProperties.uri(), [
       inverse.uri()
@@ -150,6 +148,14 @@ var bootstrap = function(thingStore) {
   // relationship to set types
   ofType.extend([
     [label.uri(), 'of Type'],
+  ], true);
+  
+  subTypeOf.extend([
+    [label.uri(), 'subtype of']
+  ], true);
+  
+  subPropertyOf.extend([
+    [label.uri(), 'subproperty of']
   ], true);
 
   // types to define security and visibility

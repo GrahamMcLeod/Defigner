@@ -1,16 +1,12 @@
 var createThingStore = function(db, userInfo, bootstrap) {
   var thing = {
     _uri: 'uri:thing',
-    _prototype: 'thing',
     isAThing: true,
-    isAPrototype: true,
+    isAType: function() {
+      return this.ofType(type);
+    },
     toString: function() {
       return this.uri()
-    },
-    name: function(name) {
-      if(name) {
-        this.uri(this.parentURI() + '/' + name.replace(/ /g, '').toLowerCase());
-      }
     },
     uri: function(uri) {
       if(uri) {
@@ -23,20 +19,8 @@ var createThingStore = function(db, userInfo, bootstrap) {
         }
       }
     },
-    prototype: function(uri) {
-      if(uri) {
-        this._prototype = uri;
-      } else {
-        return this._prototype;
-      }
-    },
     label: function() {
-      var labelProp = thingStore.lookup('uri:thing/property/label');
-      if(this.hasOwnProperty(label)) {
-        return this.property(labelProp);
-      } else {
-        return this.uri();
-      }
+      return this.property(labelProp);
     },
     serialize: function() {
       var serializedThing = {functions: []};
@@ -61,71 +45,45 @@ var createThingStore = function(db, userInfo, bootstrap) {
       var properties = [];
       var that = this;
       this.properties().forEach( function(prop) {
-        var valueInfo = that.propertyLabel(prop);
-        var isCollection = prop.property('collection');
-        var isLiteral = prop.property(range).hasParent('uri:thing/literal');
         properties.push({
           label: prop.label(),
-          value: valueInfo.value,
-          isLiteral: isLiteral,
-          isCollection: isCollection,
-          inherited: valueInfo.inherited,
+          value: that.propertyLabel(prop),
+          isLiteral: prop.property(range).ofType(literal),
+          isCollection: prop.ofType(collection),
           uri: prop.uri()
         });
       });
       return {label: this.label(), uri: this.uri(), properties: properties};
     },
-    myHTML: function () {
-      var tempHTML='';
-      for (var property in this) {
-        if (typeof this[property] != 'function') {
-          tempHTML=tempHTML+'<DIV>' + property+ ': ';
-          var tempProp = this.property(property);
-          if (tempProp.isAThing) {
-            tempHTML=tempHTML+tempProp.propHTML()
-          } else {
-            tempHTML=tempHTML+tempProp
-          }
-          tempHTML=tempHTML+'</DIV>'
-        }
-      }
-      return tempHTML;
-    },
-    propHTML: function () {
-      return this.property ('name')
-    },
-    make: function(nameOrArray, noChecks) {
-      var newThing = this.parse(nameOrArray, noChecks);
+    item: function(URI, properties, noChecks) {
+      var newThing = this.create(URI, properties, noChecks);
+      newThing.propertyAppend(ofType, this);
       if(!noChecks) {
-        newThing.property ("isAPrototype", false);
-        if(nameOrArray) {
-          newThing.store();
-        }
-        if(!this.isAPrototype) {
-          this.isAPrototype = true;
-          this.store();
-        }
+        newThing.store();
       }
       return newThing;
     },
-    parse: function(nameOrArray, noChecks) {
+    subType: function(URI, properties, noChecks) {
+      var newThing = this.create(URI, properties, noChecks);
+      newThing.propertyAppend(subTypeOf, this);
+      if(!noChecks) {
+        newThing.store();
+      }
+      return newThing;
+    },
+    create: function(URI, properties, noChecks) {
       var F = function() {
       };
-      F.prototype = this;
+      F.prototype = thing;
       var newThing = new F();
-      newThing.prototype(this.uri());
-      if(!nameOrArray) {
-        return newThing;
+      if(URI) {
+        if(URI.indexOf('uri:') > -1) {
+          newThing.uri(URI);
+        } else {
+          newThing.uri(this.uri() + '/' + URI.replace(/ /g, '').toLowerCase());
+        }
       }
-      if(typeof nameOrArray == 'string') {
-        newThing.name(nameOrArray);
-      } else {
-        nameOrArray.forEach( function(each) {
-          if (each[0] == 'name')
-            newThing.name(each[1]);
-          if (each[0] == 'uri')
-            newThing.uri(each[1]);
-        });
+      if(properties) {
         newThing.extend(nameOrArray, noChecks);
       }
       return newThing;
@@ -134,33 +92,33 @@ var createThingStore = function(db, userInfo, bootstrap) {
       thingStore.save(this);
     },
     extend: function(array, noChecks) {
-      var thing = this;
+      var that = this;
       array.forEach( function(each) {
         if(typeof each[1] == 'function') {
           thing.method(each[0], each[1]);
         } else {
-          thing.property(each[0], each[1], noChecks);
+          if(noChecks) {
+            that.propertyRaw(each[0], each[1]);
+          } else {
+            that.property(each[0], each[1], noChecks);
+          }
         }
       });
       thingStore.save(this);
     },
     propertyLabel: function(prop) {
       var that = this;
-      var inherited = true;
-      if(this.hasOwnProperty(prop)) {
-        inherited = false;
-      }
       var value = that.property(prop);
       if(prop.isAThing) {
-        if(prop.property('collection')) {
-          if(!prop.property(range).hasParent('uri:thing/literal')) {
+        if(prop.ofType(collection)) {
+          if(!prop.property(range).ofType(literal)) {
             value = value.map( function(each) {
               var label = each.label();
               return {label: label, uri: each.uri()}
             });
           }
         } else {
-          if(!prop.property(range).hasParent('uri:thing/literal') && (value != null) && (value != "")) {
+          if(!prop.property(range).ofType(literal) && (value != null) && (value != "")) {
             var label = value.label();
             value = {label: label, uri: value.uri()}
           }
@@ -179,18 +137,24 @@ var createThingStore = function(db, userInfo, bootstrap) {
       }
       this.property(name, currentProperty);
     },
+    propertyRaw: function(name, value) {
+      if(value === undefined) {
+        return this[name];
+      } else {
+        this[name] = value;
+      }
+    },
     property: function(name, value, noChecks) {
       var that = this;
       if(value === undefined) {
         var value = this[name];
         if(!value)
           return value;
-        if((['prototype', range].indexOf(name) > -1) && (value != undefined))
+        if(([range].indexOf(name) > -1) && (value != undefined))
           return thingStore.lookup(value);
         if(name.isAThing) {
-          if(! name.property(range).hasParent('uri:thing/literal')) {
-            var isCollection = name.property('collection');
-            if(isCollection) {
+          if(! name.property(range).ofType(literal)) {
+            if(name.ofType(collection)) {
               value = value.map( function(each) {
                 return thingStore.lookup(each)
               });
@@ -201,100 +165,111 @@ var createThingStore = function(db, userInfo, bootstrap) {
         }
         return value;
       } else {
-        if(['name', 'uri', 'namespace', 'isAThing'].indexOf(name) > -1) {
-          return
-        };
-        if(noChecks) {
-          this[name] = value;
-          return;
-        }
-        if(name.isAThing) {
-          var propDomain = name.property(domain);
-          var propRange = name.property(range);
-          var isCollection = name.property('collection');
-          var validRange = true;
-          if(this.hasParent(propDomain)) {
-            if(value == null) {
-              if(isCollection) {
-                this[name] = [];
-              } else {
-                this[name] = null;
-              }
-              return;
-            }
-            if(propRange.hasParent('uri:thing/literal')) {
-              if(isCollection) {
-                value.forEach( function(each) {
-                  if(!propRange.validateProperty(each))
-                    validRange = false;
-                })
-              } else {
-                if(!propRange.validateProperty(value))
-                  validRange = false;
-              }
-              if(validRange) {
-                this[name] = value;
-              }
+        var propDomain = name.property(domain);
+        var propRange = name.property(range);
+        var isCollection = name.ofType(collection);
+        var validateValue = function() {
+          var validateLiteralValue = function() {
+            if(isCollection) {
+              value.forEach( function(each) {
+                if(!propRange.[validate](each))
+                  return false;
+              })
             } else {
-              if(isCollection) {
-                value.forEach( function(each) {
-                  if(!each.hasParent(propRange))
-                    validRange = false;
-                });
-              } else {
-                if(!value.hasParent(propRange))
-                  validRange = false;
+              if(!propRange.[validate](value)) {
+                return false;
               }
-              if(validRange) {
-                if(isCollection) {
-                  var serializedValue = value.map( function(each) {
-                    return each.uri()
-                  });
-                } else {
-                  var serializedValue = value.uri();
-                }
-                this[name] = serializedValue;
-
-                //check if there is inverse property defined and create if necessary
-                var inversePropCol = name.property(inverse);
-                if(inversePropCol) {
-                  inversePropCol.forEach( function(inverseProp) {
-                    if(isCollection) {
-                      value.forEach( function(each) {
-                        var inversePropertyValue = each[inverseProp];
-                        if(!inversePropertyValue)
-                          inversePropertyValue = [];
-                        if(inversePropertyValue.indexOf(that.uri()) == -1) {
-                          if(each.hasOwnProperty(inverseProp)) {
-                            inversePropertyValue.push(that.uri());
-                          } else {
-                            inversePropertyValue = [that.uri()];
-                          }
-                          each[inverseProp] = inversePropertyValue;
-                          each.store();
+            }
+            return true;
+          }
+          var validateThingValue = function() {
+            if(isCollection) {
+              value.forEach( function(each) {
+                if(!each.ofType(propRange))
+                  return false;
+              });
+            } else {
+              if(!value.ofType(propRange))
+                return false;
+            }
+            return true;
+          }
+          //validateValue logic
+          if(propRange.ofType(literal)) {
+            return validateLiteralValue();
+          } else {
+            return validateThingValue();
+          }
+        }
+        var setValue = function() {
+          var setLiteralValue = function() {
+            this[name] = value;
+          };
+          var setThingValue = function() {
+            var checkInverse = function() {
+              //check if there is inverse property defined and create if necessary
+              var inversePropCol = name.property(inverse);
+              if(inversePropCol) {
+                inversePropCol.forEach( function(inverseProp) {
+                  if(isCollection) {
+                    value.forEach( function(each) {
+                      var inversePropertyValue = each[inverseProp];
+                      if(!inversePropertyValue)
+                        inversePropertyValue = [];
+                      if(inversePropertyValue.indexOf(that.uri()) == -1) {
+                        if(each.hasOwnProperty(inverseProp)) {
+                          inversePropertyValue.push(that.uri());
+                        } else {
+                          inversePropertyValue = [that.uri()];
                         }
-                      })
-                    } else {
-                      if(!(value[inverseProp] == that.uri())) {
-                        value[inverseProp] = that.uri();
-                        value.store();
+                        each[inverseProp] = inversePropertyValue;
+                        each.store();
                       }
+                    })
+                  } else {
+                    if(!(value[inverseProp] == that.uri())) {
+                      value[inverseProp] = that.uri();
+                      value.store();
                     }
-                  });
-                }
-              } else {
-                throw new Error('Range must be of type ' + propRange.label());
+                  }
+                });
               }
+            };
+            //setThingValue logic
+            if(isCollection) {
+              var serializedValue = value.map( function(each) {
+                return each.uri()
+              });
+            } else {
+              var serializedValue = value.uri();
+            }
+            this[name] = serializedValue;
+            checkInverses();
+          };
+          //setValue logic
+          if(propRange.ofType(literal)) {
+            return setLiteralValue();
+          } else {
+            return setThingValue();
+          }
+        };
+        //property logic
+        if(this.ofType(propDomain)) {
+          if(value == null) {
+            if(isCollection) {
+              this[name] = [];
+            } else {
+              this[name] = null;
             }
           } else {
-            throw new Error(name.label() + ' has ' + propDomain.label() + ' as the domain. ' + that.label() + ' is therefore not valid.');
+            if(validateValue()) {
+              setValue(value);
+            } else {
+              throw new Error(value + ' is not valid with a Range of ' + propRange.label() + ' on ' + name.label());
+            }
           }
         } else {
-          if(value.isAThing) {
-            this[name] = value.uri();
-          } else {
-            this[name] = value;
-          }
+          throw new Error(name.label() + ' has ' + propDomain.label() + ' as the domain. ' + that.label() + ' is therefore not valid.');
         }
       }
     },
@@ -312,20 +287,23 @@ var createThingStore = function(db, userInfo, bootstrap) {
         return this[name];
       this[name] = value;
     },
-    parentURI: function() {
-      return this.prototype();
-    },
-    parent: function() {
-      return thingStore.lookup(this.parentURI());
-    },
-    hasParent: function(type) {
-      if(type.isAThing)
-        type = type.uri();
-      if(this == type) {
-        return true;
+    types: function() {
+      var myTypes = this.property(ofType);
+      if(myTypes) {
+        var inheritedTypes = [];
+        myTypes.forEach( function(each) {
+          inheritedTypes.concat(each.types());
+        });
+        return myTypes.concat(inheritedTypes);
       } else {
-        return this.prototype().indexOf(type) == 0;
+        return [];
       }
+    },
+    ofType: function(type) {
+      if(type.isAThing) {
+        type = type.uri();
+      }
+      return myTypes.indexOf(type) > -1
     }
   };
   // Define the thingStore which holds the collection of things created and provides methods to manipulate objects
@@ -420,7 +398,6 @@ var createThingStore = function(db, userInfo, bootstrap) {
           });
         }
       });
-      //this.db.saveDoc({_id: encodedURI, thing: thing});
     },
     load: function(uri, cb) {
       var encodedURI = encodeURI(uri.replace(/\//g, '_'));
@@ -462,21 +439,27 @@ var createThingStore = function(db, userInfo, bootstrap) {
       }
       arrayForEachLinear(things, function(each, cb) {
         try {
-        that.saveThingToCouch(each, cb)  
+          that.saveThingToCouch(each, cb)
         } catch(e) {
           alert(e);
         }
-        
+
       }, function() {
 
       });
     }
   };
   if(!bootstrap) {
-    var label = thingStore.lookup('uri:thing/property/label');
-    var range = thingStore.lookup('uri:thing/property/range');
-    var domain = thingStore.lookup('uri:thing/property/domain');
-    var inverse = thingStore.lookup('uri:thing/property/collection/inverse');
+    var label = dict('label');
+    var range = dict('range');
+    var domain = dict('domain');
+    var inverse = dict('inverse');
+    var ofType = dict('ofType');
+    var subTypeOf = dict('subTypeOf');
+    var collection = dict('collection');
+    var literal = dict('literal');
+    var type = dict('type');
+    var validate = dict('validate');
     thing.property(label, 'Thing');
   }
   thingStore.userInfo(userInfo);
