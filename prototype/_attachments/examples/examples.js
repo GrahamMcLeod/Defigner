@@ -209,7 +209,12 @@ var runExamples = function(dict) {
     [personOwns, [myHouse, smallTable]],
     [knows, [graham]]
   ]);
-//$('#log').append ('<br>Data written to couch');
+  
+  var company = thing.make([
+    ['name', 'company'],
+    [label, 'Company']
+  ]);
+  company.property('isAPrototype', true);
 };
 
 

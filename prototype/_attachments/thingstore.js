@@ -9,7 +9,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
     },
     name: function(name) {
       if(name) {
-        this.uri(this.parentURI() + '/' + encodeURIComponent(name).toLowerCase());
+        this.uri(this.parentURI() + '/' + name.replace(/ /g, '').toLowerCase());
       }
     },
     uri: function(uri) {
@@ -461,13 +461,15 @@ var createThingStore = function(db, userInfo, bootstrap) {
         delete this.localData[uri];
       }
       arrayForEachLinear(things, function(each, cb) {
-        that.saveThingToCouch(each, cb)
+        try {
+        that.saveThingToCouch(each, cb)  
+        } catch(e) {
+          alert(e);
+        }
+        
       }, function() {
 
       });
-    },
-    encodeURI: function(uri) {
-
     }
   };
   if(!bootstrap) {
