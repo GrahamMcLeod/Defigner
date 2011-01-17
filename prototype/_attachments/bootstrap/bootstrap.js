@@ -1,150 +1,165 @@
 var bootstrap = function(thingStore) {
-  var thing = thingStore.lookup('uri:thing');
+  var thing = thingStore.lookup(thing.uri());
+  
+  var type = thing.item('type');
+  
+  var literal = type.item('literal');
+  var string = literal.subType('string');
+  var code = literal.subType('code');
+  var boolean = literal.subType('boolean');
+  var number = literal.subType('number');
+  var date = literal.subType('date');
+  
+  var property = type.item('property');
+  var collection = property.subType('collection');
+  var relationship = collection.subType('relationship');
+  
+  var label = property.item('label');
+  var ofType = collection.item('of-type');
+  var hasProperties = collection.item('has-properties');
+  var inverse = collection.item('inverse');
+  var validate = property.item('validate');
+  
+  
+  var range = property.item('range');
+  var domain = property.item('domain');
+  
+  var propertySelect = property.item('property-select');
+  var description = property.item('description');
+  
+  var hiddenThing = type.item('hidden-thing');
+  var systemThing = type.item('system-thing');
+  
+  type.extend([
+    [label.uri(), 'Type'],
+    [hasProperties.uri(), [
+      hasProperties.uri()
+    ]
+  ], true);
+  
   //the basic data types:
-  var literal = thing.make([
-  ['name', 'literal'],
-  ['uri:thing/property/label', 'Literal'],
-  ['isAPrototype', true]
+  literal.extend([
+    [label.uri(), 'Literal'],
+    [hasProperties.uri(), [
+      validate.uri()
+    ]]
   ], true);
 
-  var string = literal.make([
-  ['name', 'string'],
-  ['uri:thing/property/label', 'String'],
-  ['validateProperty',
-  function(value) {
-    return (typeof value == 'string') | (value == undefined)
-  }]
-
+  string.extend([
+    [label.uri(), 'String'],
+    [validate.uri(), function(value) {
+      return (typeof value == 'string') | (value == null)
+    }]
+  ], true);
+  
+  code.extend([
+    [label.uri(), 'Code'],
+    [validate.uri(), function(value) {
+      return (typeof value == 'function') | (value == null)
+    }]
   ], true);
 
-  var boolean = literal.make([
-  ['name', 'boolean'],
-  ['uri:thing/property/label', 'Boolean'],
-  ['validateProperty',
-  function(value) {
-    return (typeof value == 'boolean')
-  }]
-
+  boolean.extend([
+    [label.uri(), 'Boolean'],
+    [validate.uri(), function(value) {
+      return (typeof value == 'boolean')
+    }]
   ], true);
 
-  var number = literal.make([
-  ['name', 'number'],
-  ['uri:thing/property/label', 'Number'],
-  ['validateProperty',
-  function(value) {
-    return (typeof value == 'number') | (value == undefined)
-  }]
-
+  number.extend([
+    [label.uri(), 'Number'],
+    [validate.uri(), function(value) {
+      return (typeof value == 'number') | (value == null)
+    }]
   ], true);
 
-  var date = literal.make([
-  ['name', 'date'],
-  ['uri:thing/property/label', 'Date'],
-  ['validateProperty',
-  function(value) {
-    return true
-  }]
-
+  date.extend([
+    [label.uri(), 'Date'],
+    [validate.uri(), function(value) {
+      return true
+    }]
   ], true);
 
   //the property prototype
-  var property = thing.make([
-  ['name', 'property'],
-  ['uri:thing/property/label', 'Property'],
-  ['uri:thing/property/domain', 'uri:thing'],
-  ['uri:thing/property/range', 'uri:thing'],
-  ['collection', false],
-  ['isAPrototype', true]
+  property.extend([
+    [label.uri(), 'Property'],
+    [hasProperties.uri(), [
+      domain.uri(),
+      range.uri()
+    ]]
+  ], true);
+  
+  validate.extend([
+    ['name', 'validate'],
+    [label.uri(), 'range'],
+    [domain.uri(), thing.uri()],
+    [range.uri(), 'uri:thing/literal/code']
+  ], true);
+  
+  propertySelect.extend([
+    ['name', 'select-property'],
+    [label.uri(), 'Select Property'],
+    [range.uri(), property.uri()]
   ], true);
 
-  var propertySelect = property.make([
-  ['name', 'select-property'],
-  ['uri:thing/property/label', 'Select Property'],
-  ['uri:thing/property/range', 'uri:thing/property'],
-  ['collection', false]
+  range.extend([
+    [label.uri(), 'range'],
+    [range.uri(), thing.uri()],
+    [domain.uri(), property.uri()]
   ], true);
 
-  var range = property.make([
-  ['name', 'range'],
-  ['uri:thing/property/label', 'range'],
-  ['validateProperty',
-  function(value) {
-    return value.hasOwnProperty('_uri')
-  }],
-
-  ['uri:thing/property/range', 'uri:thing'],
-  ['uri:thing/property/domain', 'uri:thing/property']
-  ], true);
-
-  var domain = property.make([
-  ['name', 'domain'],
-  ['uri:thing/property/label', 'domain'],
-  ['validateProperty',
-  function(value) {
-    return value.hasOwnProperty('_uri')
-  }],
-
-  ['uri:thing/property/range', 'uri:thing'],
-  ['uri:thing/property/domain', 'uri:thing/property']
+  domain.extend([
+    [label.uri(), 'domain'],
+    [range.uri(), thing.uri()],
+    [domain.uri(), property.uri()]
   ], true);
 
   //a basic label property
-  var label = property.make([
-  ['name', 'label'],
-  [range.uri(), string.uri()],
-  [domain.uri(), thing.uri()],
-  ['uri:thing/property/label', 'label']
+  label.extend([
+    [range.uri(), string.uri()],
+    [domain.uri(), thing.uri()],
+    [label.uri(), 'label']
   ], true);
 
   //a description property
-  var description = property.make([
-  ['name', 'description'],
-  [range.uri(), string.uri()],
-  [label.uri(), 'description']
+  description.extend([
+    [range.uri(), string.uri()],
+    [label.uri(), 'description']
   ], true);
 
-  var collection = property.make([
-  ['name', 'collection'],
-  ['collection', true],
-  ['isAPrototype', true],
-  [label.uri(), 'collection']
+  collection.extend([
+    ['isAPrototype', true],
+    [label.uri(), 'collection']
   ], true);
 
-  var inverse = collection.make([
-  ['name', 'inverse'],
-  [label.uri(), 'inverse'],
-  ['uri:thing/property/collection/inverse', ['uri:thing/property/collection/inverse']]
+  inverse.extend([
+    [label.uri(), 'inverse'],
+    [inverse.uri(), [
+      inverse.uri()
+    ]]
   ], true);
 
-  var relationship = collection.make([
-  ['name', 'relationship'],
-  ['isAPrototype', true],
-  [label.uri(), 'relationship'],
-  [inverse, []]
+  relationship.extend([
+    ['isAPrototype', true],
+    [label.uri(), 'relationship'],
+    [hasProperties.uri(), [
+      inverse.uri()
+    ]
   ], true);
 
   // relationship to set types
-  var ofType = collection.make([
-  ['name', 'of_type'],
-  [label.uri(), 'of Type'],
-  ], true);
-
-  // property value to be used to declare a thing as a type
-  var type = thing.make([
-  ['name', 'type'],
-  [label.uri(), 'Type']
+  ofType.extend([
+    [label.uri(), 'of Type'],
   ], true);
 
   // types to define security and visibility
-  var hiddenThing = thing.make([
-  ['name', 'hidden_thing'],
-  [label.uri(), 'hidden thing'],
-  [ofType.uri(), [type.uri()]]
+  hiddenThing.extend([
+    [label.uri(), 'hidden thing'],
+    [ofType.uri(), [type.uri()]]
   ], true);
 
-  var systemThing = thing.make([
-  ['name', 'system_thing'],
-  [label.uri(), 'system thing'],
-  [ofType.uri(), [type.uri()]]
+  systemThing.extend([
+    [label.uri(), 'system thing'],
+    [ofType.uri(), [type.uri()]]
   ], true);
 }
