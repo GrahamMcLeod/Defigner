@@ -1,171 +1,223 @@
 var bootstrap = function(thingStore) {
-  var thing = thingStore.lookup(thing.uri());
+  var thing = thingStore.lookup('uri:thing');
   
-  var type = thing.item('type');
+  var type = thing.createRaw('uri:type');
   
-  var literal = type.item('literal');
-  var string = literal.subType('string');
-  var code = literal.subType('code');
-  var boolean = literal.subType('boolean');
-  var number = literal.subType('number');
-  var date = literal.subType('date');
+  var literal = thing.createRaw('uri:literal');
+  var string = thing.createRaw('uri:string');
+  var code = thing.createRaw('uri:code');
+  var boolean = thing.createRaw('uri:boolean');
+  var number = thing.createRaw('uri:number');
+  var date = thing.createRaw('uri:date');
   
-  var property = type.item('property');
-  var collection = property.subType('collection');
-  var relationship = collection.subType('relationship');
+  var property = thing.createRaw('uri:property');
+  var collection = thing.createRaw('uri:collection');
+  var relationship = thing.createRaw('uri:relationship');
   
-  var label = property.item('label');
-  var ofType = collection.item('of-type');
-  var subTypeOf = collection.item('subtype-of');
-  var subPropertyOf = collection.item('subproperty-of');
-  var hasProperties = collection.item('has-properties');
-  var inverse = collection.item('inverse');
-  var validate = property.item('validate');
+  var label = thing.createRaw('uri:label');
+  var ofType = thing.createRaw('uri:of-type');
+  var subTypeOf = thing.createRaw('uri:subtype-of');
+  var subPropertyOf = thing.createRaw('uri:subproperty-of');
+  var hasProperties = thing.createRaw('uri:has-properties');
+  var inverse = thing.createRaw('uri:inverse');
+  var validate = thing.createRaw('uri:validate');
+  var lastModified = thing.createRaw('uri:last-modified');
+  var modifiedBy = thing.createRaw('uri:modified-by');
   
+  var range = thing.createRaw('uri:range');
+  var domain = thing.createRaw('uri:domain');
   
-  var range = property.item('range');
-  var domain = property.item('domain');
+  var propertySelect = thing.createRaw('uri:property-select');
+  var description = thing.createRaw('uri:description');
   
-  var propertySelect = property.item('property-select');
-  var description = property.item('description');
+  var hiddenThing = thing.createRaw('uri:hidden-thing');
+  var systemThing = thing.createRaw('uri:system-thing');
   
-  var hiddenThing = type.item('hidden-thing');
-  var systemThing = type.item('system-thing');
-  
-  type.extend([
+  type.extendRaw([
     [label.uri(), 'Type'],
+    [ofType.uri(), [thing.uri()]],
     [hasProperties.uri(), [
       hasProperties.uri()
-    ]
-  ], true);
+    ]]
+  ]);
   
   //the basic data types:
-  literal.extend([
+  literal.extendRaw([
     [label.uri(), 'Literal'],
+    [ofType.uri(), [type.uri()]],
     [hasProperties.uri(), [
       validate.uri()
     ]]
-  ], true);
+  ]);
 
-  string.extend([
+  string.extendRaw([
     [label.uri(), 'String'],
+    [subTypeOf.uri(), [literal.uri()]],
     [validate.uri(), function(value) {
       return (typeof value == 'string') | (value == null)
     }]
-  ], true);
+  ]);
   
-  code.extend([
+  code.extendRaw([
     [label.uri(), 'Code'],
+    [subTypeOf.uri(), [literal.uri()]],
     [validate.uri(), function(value) {
       return (typeof value == 'function') | (value == null)
     }]
-  ], true);
+  ]);
 
-  boolean.extend([
+  boolean.extendRaw([
     [label.uri(), 'Boolean'],
+    [subTypeOf.uri(), [literal.uri()]],
     [validate.uri(), function(value) {
       return (typeof value == 'boolean')
     }]
-  ], true);
+  ]);
 
-  number.extend([
+  number.extendRaw([
     [label.uri(), 'Number'],
+    [subTypeOf.uri(), [literal.uri()]],
     [validate.uri(), function(value) {
       return (typeof value == 'number') | (value == null)
     }]
-  ], true);
+  ]);
 
-  date.extend([
+  date.extendRaw([
     [label.uri(), 'Date'],
+    [subTypeOf.uri(), [literal.uri()]],
     [validate.uri(), function(value) {
       return true
     }]
-  ], true);
+  ]);
+
+  hasProperties.extendRaw([
+    [label.uri(), 'has properties'],
+    [ofType.uri(), [collection.uri()]],
+    [domain.uri(), thing.uri()],
+    [range.uri(), property.uri()]
+  ]);
 
   //the property prototype
-  property.extend([
+  property.extendRaw([
     [label.uri(), 'Property'],
+    [ofType.uri(), [type.uri()]],
     [hasProperties.uri(), [
       domain.uri(),
       range.uri()
     ]]
-  ], true);
+  ]);
   
-  validate.extend([
+  validate.extendRaw([
     [label.uri(), 'range'],
+    [ofType.uri(), [property.uri()]],
     [domain.uri(), thing.uri()],
-    [range.uri(), 'uri:thing/literal/code']
-  ], true);
+    [range.uri(), code.uri()]
+  ]);
   
-  propertySelect.extend([
+  propertySelect.extendRaw([
     [label.uri(), 'Select Property'],
+    [ofType.uri(), [property.uri()]],
+    [domain.uri(), thing.uri()],
     [range.uri(), property.uri()]
-  ], true);
+  ]);
 
-  range.extend([
+  range.extendRaw([
     [label.uri(), 'range'],
+    [ofType.uri(), [property.uri()]],
     [range.uri(), thing.uri()],
     [domain.uri(), property.uri()]
-  ], true);
+  ]);
 
-  domain.extend([
+  domain.extendRaw([
     [label.uri(), 'domain'],
+    [ofType.uri(), [property.uri()]],
     [range.uri(), thing.uri()],
     [domain.uri(), property.uri()]
-  ], true);
+  ]);
 
   //a basic label property
-  label.extend([
+  label.extendRaw([
     [range.uri(), string.uri()],
+    [ofType.uri(), [property.uri()]],
     [domain.uri(), thing.uri()],
     [label.uri(), 'label']
-  ], true);
+  ]);
 
   //a description property
-  description.extend([
-    [range.uri(), string.uri()],
-    [label.uri(), 'description']
-  ], true);
+  description.extendRaw([
+    [label.uri(), 'description'],
+    [ofType.uri(), [property.uri()]],
+    [domain.uri(), thing.uri()],
+    [range.uri(), string.uri()]
+  ]);
 
-  collection.extend([
-    [label.uri(), 'collection']
-  ], true);
+  collection.extendRaw([
+    [label.uri(), 'collection'],
+    [subTypeOf.uri(), [property.uri()]]
+  ]);
 
-  inverse.extend([
+  inverse.extendRaw([
     [label.uri(), 'inverse'],
+    [ofType.uri(), [collection.uri()]],
     [inverse.uri(), [
       inverse.uri()
-    ]]
-  ], true);
+    ]],
+    [domain.uri(), property.uri()],
+    [range.uri(), property.uri()]
+  ]);
 
-  relationship.extend([
+  relationship.extendRaw([
     [label.uri(), 'relationship'],
+    [subTypeOf.uri(), [collection.uri()]],
     [hasProperties.uri(), [
       inverse.uri()
-    ]
-  ], true);
+    ]]
+  ]);
 
   // relationship to set types
-  ofType.extend([
+  ofType.extendRaw([
     [label.uri(), 'of Type'],
-  ], true);
+    [ofType.uri(), [collection.uri()]],
+    [domain.uri(), thing.uri()],
+    [range.uri(), thing.uri()]
+  ]);
   
-  subTypeOf.extend([
-    [label.uri(), 'subtype of']
-  ], true);
+  subTypeOf.extendRaw([
+    [label.uri(), 'subtype of'],
+    [ofType.uri(), [collection.uri()]],
+    [domain.uri(), thing.uri()],
+    [range.uri(), thing.uri()]
+  ]);
   
-  subPropertyOf.extend([
-    [label.uri(), 'subproperty of']
-  ], true);
+  subPropertyOf.extendRaw([
+    [label.uri(), 'subproperty of'],
+    [ofType.uri(), [collection.uri()]],
+    [domain.uri(), property.uri()],
+    [range.uri(), property.uri()]
+  ]);
 
   // types to define security and visibility
-  hiddenThing.extend([
+  hiddenThing.extendRaw([
     [label.uri(), 'hidden thing'],
     [ofType.uri(), [type.uri()]]
-  ], true);
+  ]);
 
-  systemThing.extend([
+  systemThing.extendRaw([
     [label.uri(), 'system thing'],
     [ofType.uri(), [type.uri()]]
-  ], true);
+  ]);
+  
+  lastModified.extendRaw([
+    [label.uri(), 'last modified'],
+    [ofType.uri(), [property.uri()]],
+    [domain.uri(), thing.uri()],
+    [range.uri(), date.uri()]
+  ]);
+  
+  modifiedBy.extendRaw([
+    [label.uri(), 'modified by'],
+    [ofType.uri(), [property.uri()]],
+    [domain.uri(), thing.uri()],
+    [range.uri(), string.uri()]
+  ]);
 }

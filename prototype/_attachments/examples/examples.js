@@ -3,6 +3,7 @@
 var runExamples = function(dict) {
   // initializing some variables using the dictionary:
   var thing = dict('thing');
+  var type = dict('type');
   var label = dict('label');
   var string = dict('string');
   var number = dict('number');
@@ -18,22 +19,26 @@ var runExamples = function(dict) {
 //defining some properties to use:  
   var createdAt = property.item('createdAt', [
     [label, 'created At'],
+    [domain, thing],
     [range, dict('date')]
   ]);
   
   var colour = property.item('colour', [
     [label, 'colour'],
+    [domain, thing],
     [range, string]
   ]);
 
   var colours = collection.item('colours', [
     [label, 'colours'],
+    [domain, thing],
     [range, string]
   ]);
   
   var legs = property.item('legs', [
     [label, 'Legs'],
     [description, 'number of legs'],
+    [domain, thing],
     [range, number]
   ]);
   
@@ -56,19 +61,21 @@ var runExamples = function(dict) {
   var personHeight = property.item('person-height', [
     [label, 'height'], 
     [description, 'height in centimeters'],
+    [domain, thing],
     [range, personHeightValue]
   ]);
   
   var height = property.item('height', [
     [label, 'height'], 
     [description, 'height in centimeters'],
+    [domain, thing],
     [range, number]
   ]);
   
   //defining some things holding the properties:
   var furniture = type.item('furniture', [
     [label, 'Furniture'],
-    [hasProperties: [
+    [hasProperties, [
       createdAt,
       colours
     ]]
@@ -123,7 +130,7 @@ var runExamples = function(dict) {
   ]);
   
   //adding that relationship to the House prototype
-  house.property(houseHasFurniture, [furniture]);
+  house.property(hasProperties, [houseHasFurniture]);
   
   var myHouse = smallHouse.item('myHouse', [
     [label, 'My House'],
@@ -138,14 +145,10 @@ var runExamples = function(dict) {
   var grahamsHouse = house.item('grahams-house', [
     [label, 'Grahams\' House'],
     [houseHasFurniture, [bigTable, chair, board]]
-  ]);
-  
- // var person = thingStore.lookup("uri:thing/person");
-  
+  ]);  
   
   var person = type.item('person', [
-    [label, 'Person'],
-    [personHeight, personHeightValue]
+    [label, 'Person']
   ]);
   
   var personOwns = relationship.item('person-owns', [
@@ -167,10 +170,12 @@ var runExamples = function(dict) {
   
   var knownBy = relationship.item('known-by', [
     [label, 'known by'],
-    [inverse, [knows]]
+    [inverse, [knows]],
+    [domain, person],
+    [range, person]
   ]); 
   
-  person.property(knows, [person]);
+  person.property(hasProperties, [knows, personOwns, personHeight]);
 
   var graham = person.item('graham', [
     [label, 'Graham'],

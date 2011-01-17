@@ -397,8 +397,6 @@ var addThingEvents = function() {
 $( function() {
   var focusItem = dict('thing');
   focus.type(focusItem);
-  var furniture = thingStore.lookup('uri:thing/furniture');
-  var table = thingStore.lookup('uri:thing/furniture/table');
   var browserTabUpdate = function() {
     browserViewTypeSelector(focusItem);
   };

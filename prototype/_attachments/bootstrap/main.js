@@ -3,18 +3,20 @@ $(function() {
   var userInfo = {
     name: 'bootstrap_user',
     addUserInfo: function(thing) {
-      thing.property('modified_by', this.name);
+      thing[modifiedBy] = this.name;
     },
     postMake: function(thing) {
-      thing.property('last_modified', new Date());
+      thing[lastModified] = new Date();
       this.addUserInfo(thing);
-      var ofType = thingStore.lookup('uri:thing/property/collection/of_type');
-      var systemThing = thingStore.lookup('uri:thing/system_thing');
-      thing.propertyAppend(ofType.uri(), [systemThing.uri()]);
     }
   };
   thingStore = createThingStore('prototype', userInfo, true);
-  
   bootstrap(thingStore);
+  var dict = createDictionary(thingStore);
+  var lastModified = dict('lastModified');
+  var modifiedBy = dict('modifiedBy');
+  var ofType = dict('ofType');
+  var systemThing = dict('systemThing');
+  initCommonThings(thingStore);
   thingStore.commit();
 });

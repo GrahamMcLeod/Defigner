@@ -3,15 +3,17 @@ $(function() {
   var userInfo = {
     name: 'example_user',
     addUserInfo: function(thing) {
-      thing.property('modified_by', this.name);
+      thing.property(modifiedBy, this.name);
     },
     postMake: function(thing) {
-      thing.property('last_modified', new Date());
+      thing.property(lastModified, new Date());
       this.addUserInfo(thing);
     }
   };
   thingStore = createThingStore('prototype', userInfo);
   dict = createDictionary(thingStore);
+  var lastModified = dict('lastModified');
+  var modifiedBy = dict('modifiedBy');
   runExamples(dict);
   thingStore.commit();
 });
