@@ -377,7 +377,7 @@ var viewToHTML = function (view) {
   return ich.outForm(view,true);
 }
 var addThingEvents = function() {
-  $(".thing").bind('click', function() {
+  $('.thing[event!="true"]').attr('event', 'true').bind('click', function() {
     var thing = thingStore.lookup($(this).attr('uri'));
     displayThingDetails(thing);
   })
