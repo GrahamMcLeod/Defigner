@@ -35,9 +35,10 @@ var bootstrap = function(thingStore) {
   
   type.extendRaw([
     [label.uri(), 'Type'],
-    [ofType.uri(), [thing.uri()]],
+    [ofType.uri(), [thing.uri(), type.uri()]],
     [hasProperties.uri(), [
-      hasProperties.uri()
+      hasProperties.uri(),
+      subTypeOf.uri()
     ]]
   ]);
   
@@ -53,6 +54,7 @@ var bootstrap = function(thingStore) {
   string.extendRaw([
     [label.uri(), 'String'],
     [subTypeOf.uri(), [literal.uri()]],
+    [ofType.uri(), [type.uri()]],
     [validate.uri(), function(value) {
       return (typeof value == 'string') | (value == null)
     }]
@@ -61,6 +63,7 @@ var bootstrap = function(thingStore) {
   code.extendRaw([
     [label.uri(), 'Code'],
     [subTypeOf.uri(), [literal.uri()]],
+    [ofType.uri(), [type.uri()]],
     [validate.uri(), function(value) {
       return (typeof value == 'function') | (value == null)
     }]
@@ -69,6 +72,7 @@ var bootstrap = function(thingStore) {
   boolean.extendRaw([
     [label.uri(), 'Boolean'],
     [subTypeOf.uri(), [literal.uri()]],
+    [ofType.uri(), [type.uri()]],
     [validate.uri(), function(value) {
       return (typeof value == 'boolean')
     }]
@@ -77,6 +81,7 @@ var bootstrap = function(thingStore) {
   number.extendRaw([
     [label.uri(), 'Number'],
     [subTypeOf.uri(), [literal.uri()]],
+    [ofType.uri(), [type.uri()]],
     [validate.uri(), function(value) {
       return (typeof value == 'number') | (value == null)
     }]
@@ -85,6 +90,7 @@ var bootstrap = function(thingStore) {
   date.extendRaw([
     [label.uri(), 'Date'],
     [subTypeOf.uri(), [literal.uri()]],
+    [ofType.uri(), [type.uri()]],
     [validate.uri(), function(value) {
       return true
     }]
@@ -153,7 +159,8 @@ var bootstrap = function(thingStore) {
 
   collection.extendRaw([
     [label.uri(), 'collection'],
-    [subTypeOf.uri(), [property.uri()]]
+    [subTypeOf.uri(), [property.uri()]],
+    [ofType.uri(), [type.uri()]]
   ]);
 
   inverse.extendRaw([
@@ -169,6 +176,7 @@ var bootstrap = function(thingStore) {
   relationship.extendRaw([
     [label.uri(), 'relationship'],
     [subTypeOf.uri(), [collection.uri()]],
+    [ofType.uri(), [type.uri()]],
     [hasProperties.uri(), [
       inverse.uri()
     ]]
@@ -179,7 +187,7 @@ var bootstrap = function(thingStore) {
     [label.uri(), 'of Type'],
     [ofType.uri(), [collection.uri()]],
     [domain.uri(), thing.uri()],
-    [range.uri(), thing.uri()]
+    [range.uri(), type.uri()]
   ]);
   
   subTypeOf.extendRaw([

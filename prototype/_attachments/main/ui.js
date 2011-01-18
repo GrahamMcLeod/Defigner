@@ -4,6 +4,7 @@ var literal = dict('literal');
 var number = dict('number');
 var range = dict('range');
 var domain = dict('domain');
+var hasProperties = dict('hasProperties');
 var focus = {
   currType: thing,
   currItem: thing,
@@ -31,7 +32,7 @@ var typeSelector = function(options) {
   var focusedType = options.focusedType;
   var onSelectType = options.onSelectType;
   var loadPrototypeListRecursive = function(parent, cb) {
-    thingStore.prototypes(parent, function(prototypeList) {
+    thingStore.subtypes(parent, function(prototypeList) {
       var prototypeData = prototypeList.map( function(each) {
         return {prototype: each, subprototypes: []}
       });
@@ -115,42 +116,30 @@ var loadInstanceList = function(parent, cb) {
     cb({label: parent.label(), uri: parent.uri(), things: formattedList});
   })
 }
-var formatPropertyValue = function(value, inherited) {
-  if(value.constructor == Array) {
-    value = '<div class="thing">' + value.map( function(each) {
-      return each.label
-    }).join('</div><div class="thing">') + '</div>';
-  } else {
-    if(value.constructor == Object) {
-      return '<div class="thing">' + value.label + '</div>';
-    }
-  }
-  if(inherited) {
-    return '<span class="inherited">[' + value + ']</span>';
-  } else {
-    return value;
-  }
-}
 var loadTableData = function(parent, cb) {
   thingStore.instances(parent, function(instances) {
-    var parentProps = parent.properties();
+    var parentProps = parent.hasProperties([thing]);
     var headings = parentProps.map( function(each) {
       return each.label();
     });
-    var prototypeRow = parentProps.map( function(prop) {
-      var valueInfo = parent.propertyLabel(prop);
-      return formatPropertyValue(valueInfo.value, valueInfo.inherited);
-    });
     var instanceRows = instances.map( function(instance) {
       var cells = parentProps.map( function(prop) {
-        var valueInfo = instance.propertyLabel(prop);
-        var value = valueInfo.value;
-        var inherited = valueInfo.inherited;
-        return formatPropertyValue(value, inherited);
+        var cell = {value: instance.propertyLabel(prop)};
+        if(prop.ofType(collection)) {
+          cell.isCollection = true;
+        } else {
+          cell.isCollection = false;
+        }
+        if(prop.property(range).hasSupertype(literal)) {
+          cell.isLiteral = true;
+        } else {
+          cell.isLiteral = false;
+        }
+        return cell;
       });
       return {uri: instance.uri(), cells: cells};
     });
-    cb({headings: headings, prototypeRow: {uri: parent.uri(), cells: prototypeRow}, instanceRows: instanceRows});
+    cb({headings: headings, instanceRows: instanceRows});
   });
 }
 var displayTableData = function(parent) {
@@ -166,7 +155,7 @@ var displayInstanceList = function(prototype, domElement, cb) {
     addThingEvents();
     var newItemButton = function() {
       $('#newItemButton').bind('click', function() {
-        var newItem = prototype.make();
+        var newItem = prototype.item();
         newItem.property(label, '');
         displayThingDetailsEdit({
           focusThing: newItem,
@@ -175,7 +164,7 @@ var displayInstanceList = function(prototype, domElement, cb) {
               var name = newProperties.filter( function(each) {
                 return each[0].uri() == label.uri();
               })[0][1];
-              newItem.name(name);
+              newItem.uri(name, prototype.uri());
               newItem.extend(newProperties);
               thingStore.commit();
               displayThingDetails(newItem);
@@ -250,7 +239,7 @@ var displayThingDetailsEdit = function(options) {
       var value;
       if(prop.literalProps) {
         value = $('input[prop-uri="' + prop.uri + '"]').val();
-        if(propType.property(range).hasParent(number)) {
+        if(propType.property(range).hasSupertype(number)) {
           value = parseFloat(value);
         }
       }
@@ -258,7 +247,7 @@ var displayThingDetailsEdit = function(options) {
         var value = $.makeArray($('[prop-uri="' + propType.uri() + '"] .literal').map( function() {
           return $(this).val();
         }));
-        if(propType.property(range).hasParent(number)) {
+        if(propType.property(range).hasSupertype(number)) {
           value = value.map( function(each) {
             return parseFloat(value);
           })

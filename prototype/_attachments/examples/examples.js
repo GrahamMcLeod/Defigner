@@ -159,7 +159,9 @@ var runExamples = function(dict) {
   
   var ownedByPerson = relationship.item('owned-by-person', [
     [label, 'owned by'],
-    [inverse, [personOwns]]
+    [inverse, [personOwns]],
+    [domain, thing],
+    [range, person]
   ]);
   
   var knows = relationship.item('knows', [

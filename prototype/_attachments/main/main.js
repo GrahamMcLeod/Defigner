@@ -1,10 +1,10 @@
 var userInfo = {
   name: 'example_user',
   addUserInfo: function(thing) {
-    thing.property('modified_by', this.name);
+    thing.property(modifiedBy, this.name);
   },
   postMake: function(thing) {
-    thing.property('last_modified', new Date());
+    thing.property(lastModified, new Date());
     this.addUserInfo(thing);
   }
 };
@@ -13,6 +13,8 @@ dict = createDictionary(thingStore);
 var label = dict('label');
 var collection = dict('collection');
 var literal = dict('literal');
+var modifiedBy = dict('modifiedBy');
+var lastModified = dict('lastModified');
 
 // Define functions
 // Fetch a collection of objects from the store using a named starting point and following 1 level of relationships
@@ -51,7 +53,7 @@ var fetchGraph = function (startURI, nodes, links, options) {
   }
   var sourcePosInfo = addNode(startNode);
   var rels = startNode.properties().filter( function(each) {
-    return each.hasParent(collection) && (!each.hasParent(literal))
+    return each.ofType(collection) && (!each.ofType(literal))
   });
   rels.forEach( function(rel) {
     startNode.property(rel).forEach( function(each) {

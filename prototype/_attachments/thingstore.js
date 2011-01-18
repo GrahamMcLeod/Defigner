@@ -2,6 +2,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
   var thing = {
     _uri: 'uri:thing',
     'uri:label': 'Thing',
+    'uri:has-properties': ['uri:label', 'uri:of-type', 'uri:last-modified', 'uri:modified-by'],
     isAThing: true,
     isAType: function() {
       return this.ofType(type);
@@ -9,9 +10,13 @@ var createThingStore = function(db, userInfo, bootstrap) {
     toString: function() {
       return this.uri()
     },
-    uri: function(uri) {
+    uri: function(uri, parentPath) {
       if(uri) {
-        this._uri = uri;
+        if(parentPath) {
+          this._uri = parentPath + '/' + uri.replace(/ /g, '').toLowerCase()
+        } else {
+          this._uri = uri;
+        }
       } else {
         if(this.hasOwnProperty('_uri')) {
           return this._uri;
@@ -85,7 +90,7 @@ var createThingStore = function(db, userInfo, bootstrap) {
         if(URI.indexOf('uri:') > -1) {
           newThing.uri(URI);
         } else {
-          newThing.uri(this.uri() + '/' + URI.replace(/ /g, '').toLowerCase());
+          newThing.uri(URI, this.uri());
         }
       }
       return newThing;
@@ -169,23 +174,29 @@ var createThingStore = function(db, userInfo, bootstrap) {
       var that = this;
       if(value === undefined) {
         var value = this[name];
-        if(!value)
+        if(!value) {
+          if([ofType, subTypeOf].indexOf(name) > -1)
+            return [];
+          if(name.ofType(collection)) {
+            value = [];
+          } else {
+            value = null;
+          }
           return value;
+        }
         if(name == range)
           return thingStore.lookup(value);
         if([ofType, subTypeOf].indexOf(name) > -1)
           return value.map( function(each) {
             return thingStore.lookup(each)
           });
-        if(name.isAThing) {
-          if(! name.property(range).hasSupertype(literal)) {
-            if(name.ofType(collection)) {
-              value = value.map( function(each) {
-                return thingStore.lookup(each)
-              });
-            } else {
-              value = thingStore.lookup(value);
-            }
+        if(! name.property(range).hasSupertype(literal)) {
+          if(name.ofType(collection)) {
+            value = value.map( function(each) {
+              return thingStore.lookup(each)
+            });
+          } else {
+            value = thingStore.lookup(value);
           }
         }
         return value;
@@ -298,14 +309,42 @@ var createThingStore = function(db, userInfo, bootstrap) {
         }
       }
     },
+    hasProperties: function(otherTypes) {
+      var myRestrictions = this.property(hasProperties);
+      if(otherTypes) {
+        otherTypes.forEach( function(aType) {
+          theirRestrictions = aType.property(hasProperties);
+          if(theirRestrictions) {
+            theirRestrictions.forEach( function(aRes) {
+              if(myRestrictions.indexOf(aRes) == -1)
+                myRestrictions.push(aRes);
+            })
+          }
+        });
+      }
+      return myRestrictions.sort( function(a, b) {
+        a.uri() > b.uri()
+      })
+    },
     properties: function() {
       var props = [];
       for(var prop in this) {
-        if(prop.indexOf('uri:') > -1) {
+        if(this.hasOwnProperty(prop) && (prop.indexOf('uri:') > -1)) {
           props.push(thingStore.lookup(prop));
         }
       }
-      return props;
+      this.types().forEach( function(aType) {
+        var restrictedProps = aType.property(hasProperties);
+        if(restrictedProps) {
+          restrictedProps.forEach( function(prop) {
+            if(props.indexOf(prop) == -1)
+              props.push(prop);
+          })
+        }
+      });
+      return props.sort( function(a, b) {
+        return a.uri() > b.uri()
+      });
     },
     method: function(name, value) {
       if(!value)
@@ -325,7 +364,9 @@ var createThingStore = function(db, userInfo, bootstrap) {
       }
     },
     supertypeURIs: function() {
-      return this.supertypes().map(function(each) {return each.uri()});
+      return this.supertypes().map( function(each) {
+        return each.uri()
+      });
     },
     types: function() {
       var myTypes = this.property(ofType);
@@ -344,7 +385,9 @@ var createThingStore = function(db, userInfo, bootstrap) {
       });
     },
     hasSupertype: function(type) {
-      return (this.supertypes().indexOf(type) > -1) || (type == this)
+      if(type.isAThing)
+        type = type.uri();
+      return (this.supertypeURIs().indexOf(type) > -1) || (type == this.uri())
     },
     ofType: function(type) {
       if(type.isAThing) {
@@ -513,4 +556,5 @@ var initCommonThings = function(thingStore) {
   literal = dict('literal');
   type = dict('type');
   validate = dict('validate');
+  hasProperties = dict('hasProperties');
 }

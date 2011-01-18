@@ -139,7 +139,7 @@ body {
             {{/properties}}
               <tr>
                 <td>
-                  <input name="new-property" prop-uri="uri:thing/property/select-property"/>
+                  <input name="new-property" prop-uri="uri:property-select"/>
                 </td>
                 <td>
                 </td>
@@ -162,17 +162,27 @@ body {
           {{/headings}}
         </tr>
         </thead>
-        {{#prototypeRow}}
-        <tr class="prototype" uri="{{uri}}">
-          {{#cells}}
-          <td>{{{.}}}</td>
-          {{/cells}}
-        </tr>
-        {{/prototypeRow}}
         {{#instanceRows}}
         <tr uri="{{uri}}">
           {{#cells}}
-          <td>{{{.}}}</td>
+          <td>
+            {{#isCollection}}
+              {{#isLiteral}}
+                {{#value}}{{.}}<br>{{/value}}
+              {{/isLiteral}}
+              {{^isLiteral}}
+                {{#value}}{{label}}<br>{{/value}}
+              {{/isLiteral}}
+            {{/isCollection}}
+            {{^isCollection}}
+              {{#isLiteral}}
+                {{value}}
+              {{/isLiteral}}
+              {{^isLiteral}}
+                {{#value}}{{label}}{{/value}}
+              {{/isLiteral}}
+            {{/isCollection}}
+          </td>
           {{/cells}}
         </tr>
         {{/instanceRows}}
